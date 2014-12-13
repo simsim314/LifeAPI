@@ -113,14 +113,17 @@ The third parameter *op, should be one of the four strings:  "copy", "or", "xor"
 
 
 **void Copy(LifeState* main, LifeState* delta)**
+
 Copy with *op = "copy". 
 
 
 **void Join(LifeState* main, LifeState* delta)**
+
 Copy with *op =  "or".
 
 
 **void Join(LifeState* main, LifeState* delta, int dx, int dy)**
+
 Fast joining operation - as fast as move, but doesn't change the delta state. 
 
 
