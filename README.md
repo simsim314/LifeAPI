@@ -39,7 +39,7 @@ and Life Rule is hard coded into bitwise iteration. LifeStates also contains min
 
 **NOTE:** LifeStates is "column" based, in the sense that long and thin patterns will work faster, but this is usually neglectable - unless one has very long and very thin pattern. 
 
-**NOTE:** The space is 64x64 and it's currently intended to work with this limited space, it's enough for large amount of serchs. 
+**NOTE:** The space is 64x64 and it's currently intended to work with this limited space, it's enough for large amount of searches. 
 
 ---
 Global Objects
