@@ -20,7 +20,8 @@ NOTE: LifeStates is "column" based, in the sense that long and thin patterns wil
 
 NOTE: The space is 64x64 and it's currently intended to work with this limited space, it's enough for large amount of serchs. 
 
----                    Global Object
+---                    
+==============================Global Object============================
 
 First of all there are some static objects in LifeAPI. 
 
