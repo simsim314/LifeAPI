@@ -115,6 +115,62 @@ void ExpandMinMax(int* min, int* max)
 	
 }
 
+
+void RefitMinMax(LifeState* state)
+{
+	int min = state->min;
+	int max = state->max;
+	uint64_t * states = state->state;
+	
+	for(int i = min; i <= max; i++)
+	{
+		if(states[i] != 0)
+		{
+			state-> min = i;
+			break;
+		}
+	}
+	
+	for(int i = max; i >= min; i--)
+	{
+		if(states[i] != 0)
+		{
+			state-> max  = i;
+			break;
+		}
+	}
+	
+	ExpandMinMax(&(state-> min), &(state-> max));	
+}
+
+void RecalculateMinMax(LifeState* state)
+{
+	state-> min = N - 1;
+	state-> max = 0;
+	
+	for(int i = 0; i < N; i++)
+	{
+		if(state->state[i] != 0)
+		{
+			state-> min = i;
+			break;
+		}
+	}
+	
+	for(int i = N - 1; i >= 0; i--)
+	{
+		if(state->state[i] != 0)
+		{
+		
+			state-> max  = i;
+			break;
+		}
+	}
+	
+	ExpandMinMax(&(state-> min), &(state-> max));	
+}
+
+
 void Print(LifeState *state)
 {
 	int i, j;
@@ -178,8 +234,7 @@ void Copy(LifeState* main, LifeState* delta, char* op)
 			main->state[i] ^= delta->state[i];
 	}
 	
-	main->min = 0;
-	main->max = N - 1;
+	RecalculateMinMax(main);
 }
 
 void Copy(LifeState* main, LifeState* delta)
@@ -199,33 +254,6 @@ int GetPop(LifeState* state)
 	}
 	
 	return pop;
-}
-
-void FitMinMax(LifeState* state)
-{
-	state-> min = N - 1;
-	state-> max = 0;
-	
-	for(int i = 0; i < N; i++)
-	{
-		if(state->state[i] != 0)
-		{
-			state-> min = i;
-			break;
-		}
-	}
-	
-	for(int i = N - 1; i >= 0; i--)
-	{
-		if(state->state[i] != 0)
-		{
-		
-			state-> max  = i;
-			break;
-		}
-	}
-	
-	ExpandMinMax(&(state-> min), &(state-> max));	
 }
 
 int GetPop()
@@ -264,21 +292,31 @@ int AreEqual(LifeState* pat1, LifeState* pat2)
 
 int ContainsInverse(LifeState* main, LifeState* inverseSpark)
 {
-	ClearData(Temp);
-	Copy(Temp, main);
-	Inverse(Temp);
-	Copy(Temp, inverseSpark, "and");
-	return AreEqual(Temp, inverseSpark);
+	int min = inverseSpark->min;
+	int max = inverseSpark->max;
+	uint64_t * mainState = main->state;
+	uint64_t * inverseState = inverseSpark->state;
+	
+	for(int i = min; i <= max; i++)
+		if(~mainState[i] & inverseState[i] != inverseState[i])
+			return NO;
+	
+	return YES;
 }
 
 
 int Contains(LifeState* main, LifeState* spark)
 {
-	ClearData(Temp);
-	Copy(Temp, main);
-	Copy(Temp, spark, "and");
+	int min = spark->min;
+	int max = spark->max;
+	uint64_t * mainState = main->state;
+	uint64_t * sparkState = spark->state;
 	
-	return AreEqual(Temp, spark);
+	for(int i = min; i <= max; i++)
+		if(mainState[i] & sparkState[i] != sparkState[i])
+			return NO;
+	
+	return YES;
 }
 
 int Contains(LifeState* spark)
@@ -298,8 +336,12 @@ LifeState* NewState()
 	return result;
 }
 
-void IterateState(uint64_t  *state, int min, int max)
+void IterateState(LifeState  *lifstate)
 {
+	uint64_t* state = lifstate->state;
+	int min = lifstate->min;
+	int max = lifstate->max;
+	
 	uint64_t tempxor[N];
 	uint64_t tempand[N];
 
@@ -366,10 +408,15 @@ void IterateState(uint64_t  *state, int min, int max)
 	if(e == N - 2)
 		e = N - 1;
 	
+	int newmin = s;
+	int newmax = e;
+	
 	for(i = s; i <= e; i++)
 	{
 		state[i] = tempState[i];
 	}	
+	
+	RefitMinMax(lifstate);
 }
 
 void Reverse(uint64_t  *state, int idxS, int idxE)
@@ -451,7 +498,7 @@ void Transform(LifeState* state, int dx, int dy, int dxx, int dxy, int dyx, int 
 	
 	Copy(state, Temp);
 	Move(state, dx, dy);
-	FitMinMax(state);
+	RecalculateMinMax(state);
 }
 
 void Transform(LifeState* state, int dx, int dy)
@@ -679,11 +726,7 @@ void Evolve(LifeState* state, int numIters)
 {
 	int i; 
 	for(i = 0; i < numIters; i++)
-	{
-		FitMinMax(state);
-		ExpandMinMax(&(state-> min), &(state-> max));		
-		IterateState(state->state, (state->min), (state->max));
-	}
+		IterateState(state);
 }
 
 void New()
