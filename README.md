@@ -62,12 +62,9 @@ Initializing LifeState
 ---
 
 `LifeState* NewState()`
-
-`**LifeState* NewState(char* rle)**`
-
-**`LifeState* NewState(char* rle, int dx, int dy)`**
-
-**`LifeState* NewState(char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)`**
+`LifeState* NewState(char* rle)`
+`LifeState* NewState(char* rle, int dx, int dy)`
+`LifeState* NewState(char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)`
 
 To crate new LifeState you first use one of the initializers. 
 
@@ -79,9 +76,7 @@ One can also use the *Parse* (see lower) function after the initial NewState().
 
 ====
 
-**int Parse(LifeState* lifeState, char* rle)**
-
-
+`int Parse(LifeState* lifeState, char* rle)`
 **int Parse(LifeState* lifeState, char* rle, int dx, int dy)**
 
 
