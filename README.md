@@ -13,7 +13,8 @@ LifeAPI uses CamelCase convention for its functions, but it's very similar to go
 
 API Documentation 
 ==========
-
+---
+---
 
 
 
@@ -29,16 +30,18 @@ and Life Rule is hard coded into bitwise iteration. LifeStates also contains min
 **NOTE:** LifeStates is "column" based, in the sense that long and thin patterns will work faster, but this is usually neglectable - unless one has very long and very thin pattern. 
 
 **NOTE:** The space is 64x64 and it's currently intended to work with this limited space, it's enough for large amount of serchs. 
----
-====================Global Objects================
+
+
+Global Objects
+====================================
 
 First of all there are some static objects in LifeAPI. 
 
-GlobalState - it's the "main state" (like state in golly). 
+**GlobalState** - it's the "main state" (like state in golly). 
 
-Captures - LifeAPI provide the option to capture object into some array of "Captures". This allows to return to the LifeState later. 
+*Captures* - LifeAPI provide the option to capture object into some array of "Captures". This allows to return to the LifeState later. 
 
-Temp - is just a temporary LifeState used in few places (so that malloc and free is not needed anywhere). 
+*Temp* - is just a temporary LifeState used in few places (so that malloc and free is not needed anywhere). 
 
 Each LifeAPI application Starts with the line New(); in main. This is made to initialize the GlobalState (empty universe), Capture, Temp etc. 
 
