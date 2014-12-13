@@ -147,10 +147,11 @@ void RecalculateMinMax(LifeState* state)
 {
 	state-> min = N - 1;
 	state-> max = 0;
+	uint64_t * states = state->state;
 	
 	for(int i = 0; i < N; i++)
 	{
-		if(state->state[i] != 0)
+		if(states[i] != 0)
 		{
 			state-> min = i;
 			break;
@@ -159,7 +160,7 @@ void RecalculateMinMax(LifeState* state)
 	
 	for(int i = N - 1; i >= 0; i--)
 	{
-		if(state->state[i] != 0)
+		if(states[i] != 0)
 		{
 		
 			state-> max  = i;
@@ -298,7 +299,7 @@ int ContainsInverse(LifeState* main, LifeState* inverseSpark)
 	uint64_t * inverseState = inverseSpark->state;
 	
 	for(int i = min; i <= max; i++)
-		if(~mainState[i] & inverseState[i] != inverseState[i])
+		if(((~mainState[i]) & inverseState[i]) != inverseState[i])
 			return NO;
 	
 	return YES;
@@ -312,8 +313,9 @@ int Contains(LifeState* main, LifeState* spark)
 	uint64_t * mainState = main->state;
 	uint64_t * sparkState = spark->state;
 	
+	//for(int i = 0; i <= N - 1; i++)
 	for(int i = min; i <= max; i++)
-		if(mainState[i] & sparkState[i] != sparkState[i])
+		if((mainState[i] & sparkState[i]) != (sparkState[i]))
 			return NO;
 	
 	return YES;
@@ -964,12 +966,17 @@ int Next(LifeIterator* iter)
 	return FAIL;
 }
 
-int Next(LifeIterator *iter1[], int numIters)
+
+
+int Next(LifeIterator *iter1[], int numIters, char* op)
 {
 	for(int i = 0; i < numIters; i++)
 	{
 		if(i == numIters - 1)
-			Print(iter1[i]);
+		{
+			if(strcmp(op, "print") == 0)
+				Print(iter1[i]);
+		}
 		
 		if(Next(iter1[i]) == SUCCESS)
 			return SUCCESS;
@@ -978,37 +985,63 @@ int Next(LifeIterator *iter1[], int numIters)
 	return FAIL;
 }
 
-int Next(LifeIterator *iter1, LifeIterator *iter2)
+int Next(LifeIterator *iter1, LifeIterator *iter2, char* op)
 {
 	LifeIterator *iters[] = {iter1, iter2};
-    return Next(iters, 2);
+    return Next(iters, 2, op);
 }
 
+int Next(LifeIterator *iter1, LifeIterator *iter2)
+{
+	Next(iter1, iter2, "print");
+}
+
+int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, char* op)
+{
+	LifeIterator *iters[] = {iter1, iter2, iter3};
+    return Next(iters, 3, op);
+}
 
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3)
 {
-	LifeIterator *iters[] = {iter1, iter2, iter3};
-    return Next(iters, 3);
+	Next(iter1, iter2, iter3, "print");
 }
 
-
-int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4)
+int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, char* op)
 {
 	LifeIterator *iters[] = {iter1, iter2, iter3, iter4};
-    return Next(iters, 4);
+    return Next(iters, 4, op);
+}
+int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4)
+{
+	Next(iter1, iter2, iter3, iter4, "print");
+}
+
+int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, LifeIterator *iter5, char* op)
+{
+	LifeIterator *iters[] = {iter1, iter2, iter3, iter4, iter5};
+    return Next(iters, 5, op);
 }
 
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, LifeIterator *iter5)
 {
-	LifeIterator *iters[] = {iter1, iter2, iter3, iter4, iter5};
-    return Next(iters, 5);
+	Next(iter1, iter2, iter3, iter4, iter5, "print");
 }
 
+int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, LifeIterator *iter5, LifeIterator *iter6, char* op)
+{
+	LifeIterator *iters[] = {iter1, iter2, iter3, iter4, iter5, iter6};
+    return Next(iters, 6, op);
+}
 
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, LifeIterator *iter5, LifeIterator *iter6)
 {
-	LifeIterator *iters[] = {iter1, iter2, iter3, iter4, iter5, iter6};
-    return Next(iters, 6);
+	Next(iter1, iter2, iter3, iter4, iter5, iter6, "print");
+}
+
+int Next(LifeIterator *iter1[], int numIters)
+{
+	Next(iter1, numIters, "print");
 }
 
 void FreeIterator(LifeIterator* iter)
