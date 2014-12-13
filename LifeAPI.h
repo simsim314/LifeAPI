@@ -264,21 +264,21 @@ int AreEqual(LifeState* pat1, LifeState* pat2)
 
 int ContainsInverse(LifeState* main, LifeState* inverseSpark)
 {
-	ClearData(Temp);
-	Copy(Temp, main);
-	Inverse(Temp);
-	Copy(Temp, inverseSpark, AND);
-	return AreEqual(Temp, inverseSpark);
+	for(int i = 0; i < N; i++)
+		if(main->state[i] & inverseSpark->state[i])
+			return NO;
+			
+	return YES;
 }
 
 
 int Contains(LifeState* main, LifeState* spark)
 {
-	ClearData(Temp);
-	Copy(Temp, main);
-	Copy(Temp, spark, AND);
-	
-	return AreEqual(Temp, spark);
+	for(int i = 0; i < N; i++)
+		if(spark->state[i] & ~main->state[i])
+			return NO;
+			
+	return YES;
 }
 
 int Contains(LifeState* spark)
