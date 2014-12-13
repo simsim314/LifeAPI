@@ -62,8 +62,11 @@ Initializing LifeState
 ---
 
 `LifeState* NewState()`
+
 `LifeState* NewState(char* rle)`
+
 `LifeState* NewState(char* rle, int dx, int dy)`
+
 `LifeState* NewState(char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)`
 
 To crate new LifeState you first use one of the initializers. 
@@ -77,10 +80,10 @@ One can also use the *Parse* (see lower) function after the initial NewState().
 ====
 
 `int Parse(LifeState* lifeState, char* rle)`
-**int Parse(LifeState* lifeState, char* rle, int dx, int dy)**
 
+`int Parse(LifeState* lifeState, char* rle, int dx, int dy)`
 
-**int Parse(LifeState* lifeState, char* rle, int dx, int dy, int dx, int dy, int dxx, int dxy, int dyx, int dyy)**
+`int Parse(LifeState* lifeState, char* rle, int dx, int dy, int dx, int dy, int dxx, int dxy, int dyx, int dyy)`
 
 Parse *rle* and place it at (0,0) - i.e. in the middle. 
 
@@ -96,11 +99,11 @@ Manipulating States
 ###For any LifeState
 ---
 
-**void Transform(LifeState* state, int dx, int dy)**
+`void Transform(LifeState* state, int dx, int dy)`
 
-**void Move(LifeState* state, int x, int y)**
+`void Move(LifeState* state, int x, int y)`
 
-**void Transform(LifeState* state, int dx, int dy, int dxx, int dxy, int dyx, int dyy)**
+`void Transform(LifeState* state, int dx, int dy, int dxx, int dxy, int dyx, int dyy)`
 
 Transforming is done by Transform. In the usual way golly does that. 
 
@@ -110,57 +113,57 @@ Transforming is done by Transform. In the usual way golly does that.
 
 ====
 
-**void Copy(LifeState* main, LifeState* delta, char* op)**
+`void Copy(LifeState* main, LifeState* delta, char* op)`
 
 The copy is made to apply "delta" LifeState onto main LifeState. 
 The third parameter *op, should be one of the four strings:  "copy", "or", "xor", "and".
 
 
-**void Copy(LifeState* main, LifeState* delta)**
+`void Copy(LifeState* main, LifeState* delta)`
 
 Copy with *op = "copy". 
 
 
-**void Join(LifeState* main, LifeState* delta)**
+`void Join(LifeState* main, LifeState* delta)`
 
 Copy with *op =  "or".
 
 
-**void Join(LifeState* main, LifeState* delta, int dx, int dy)**
+`void Join(LifeState* main, LifeState* delta, int dx, int dy)`
 
 Fast joining operation - as fast as move, but doesn't change the delta state. 
 
 ====
 
-**void SetCell(LifeState* state, int x, int y, int val)**
+`void SetCell(LifeState* state, int x, int y, int val)`
 
-**int GetCell(LifeState* state, int x, int y)**
+`int GetCell(LifeState* state, int x, int y)`
 
 Set or get specific cell value. Works with one-two clock ticks, but might easily be overused. 
 
 ====
 
-**void Evolve(LifeState* state, int numIters)**
+`void Evolve(LifeState* state, int numIters)`
 
 Evolve pattern numIter generations.
 
 
 ====
 
-**void Capture(LifeState* cap, int idx)**
+`void Capture(LifeState* cap, int idx)`
 
 Capture state into Captures array with index idx.
 
 
 ====
 
-**void ClearData(LifeState* state)**
+`void ClearData(LifeState* state)`
 
 Clears all the data inside LifeState.
 
 ====
 
-**void Inverse(LifeState* state)**
+`void Inverse(LifeState* state)`
 
 Sets the 0 to 1 and 1 to 0 of LifeState.
 
@@ -175,11 +178,11 @@ Almost each function that manipulates LifeState has counterpart (or overload) th
 
 ---
 
-**int PutState(char* rle)**
+`int PutState(char* rle)`
 
-**int PutState(char* rle, int x, int y)**
+`int PutState(char* rle, int x, int y)`
 
-**int PutState(char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)**
+`int PutState(char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)`
 
 These *PutState* overloads do to the GlobalState what *NewState* + *Parse* do to any state. 
 
@@ -187,33 +190,33 @@ These *PutState* overloads do to the GlobalState what *NewState* + *Parse* do to
 
 
 
-**void PutState(LifeState* state)**
+`void PutState(LifeState* state)`
 
-**void PutState(LifeState* state, char* op)**
+`void PutState(LifeState* state, char* op)`
 
-**void PutState(LifeState* state, int dx, int dy)**
+`void PutState(LifeState* state, int dx, int dy)`
 
-**void PutState(LifeState* state, int dx, int dy, int dy, int dxx, int dxy, int dyx, int dyy)**
+`void PutState(LifeState* state, int dx, int dy, int dy, int dxx, int dxy, int dyx, int dyy)`
 
 These *PutState* overloads *PutState* doing what *Copy* does to regular state, but to the GlobalState:
 
 ====
 
-**void SetCell(int x, int y, int val)**
+`void SetCell(int x, int y, int val)`
 
-**void GetCell(int x, int y, int val)**
+`void GetCell(int x, int y, int val)`
 
 Overloads for GlobalState (no input state). 
 
 ====
 
-**void Run(int numIter)**
+`void Run(int numIter)`
 
 Evolve GlobalState
 
 ====
 
-**void New()**
+`void New()`
 
 Clears GlobalState (on the first call in main, initializes all statics) 
 
@@ -226,33 +229,33 @@ Getting Information and reporting States================
 For any LifeState
 -----
 
-**int GetPop(LifeState* state)**
+`int GetPop(LifeState* state)`
 
 get number of cells turned on - uses fast built in function. 
 
 ====
 
-**int AreEqual(LifeState* pat1, LifeState* pat2)**
+`int AreEqual(LifeState* pat1, LifeState* pat2)`
 
 returns YES if pat1 and pat2 are the same otherwise returns NO
 
 ====
 
-**int Contains(LifeState* main, LifeState* spark)**
+`int Contains(LifeState* main, LifeState* spark)`
 
 returns YES of main contains some "spark" on the same exact place - doesn't include the 0 state. 
 
 
 ====
 
-**int ContainsInverse(LifeState* main, LifeState* inverseSpark)**
+`int ContainsInverse(LifeState* main, LifeState* inverseSpark)`
 
 returns YES of inverse of main contains some "inverseSpark". 
 
 
 ====
 
-**void PrintRLE(LifeState  * lifeState)**
+`void PrintRLE(LifeState  * lifeState)`
 
 Print the rle of LifeState into console. 
 
@@ -260,7 +263,7 @@ Print the rle of LifeState into console.
 
 ====
 
-**void Print(LifeState *state)**
+`void Print(LifeState *state)`
 Print the pattern into the console
 
 
@@ -268,15 +271,15 @@ Print the pattern into the console
 For GlobalState
 -----
 
-**int GetPop()**
+`int GetPop()`
 
-**void Print()**
+`void Print()`
 
-**void PrintRLE()**
+`void PrintRLE()`
 
-**int Contains(LifeState* spark)**
+`int Contains(LifeState* spark)`
 
-**int ContainsInverse(LifeState* inverseSpark)**
+`int ContainsInverse(LifeState* inverseSpark)`
 
 ---
 Iterators 
@@ -298,7 +301,7 @@ Doing it for each place in this square. LifeIterator holds array of LifeStates, 
 Initialization
 --
 
-**LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h, int s)**
+`LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h, int s)`
 
 Usual LifeIterator initializer requires 6 parameter. NewIterator is creating the pattern and evolving it s times (holding the array of states in memory).
 
@@ -312,28 +315,27 @@ Usual LifeIterator initializer requires 6 parameter. NewIterator is creating the
 **NOTE** Those are also the names of the properties of LifeIterator struct. 
 
 
-**LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h, int s, char* op)**
+`LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h, int s, char* op)`
 
 If you don'y want to evolve the input *state*, *"leave"* can be added as *op* parameter to avoid evolving. 
 
 
-**LifeIterator* NewIterator(LifeState* states[], int x, int y, int w, int h, int s)**
+`LifeIterator* NewIterator(LifeState* states[], int x, int y, int w, int h, int s)`
 
 It's also possible to specify list of states, the iterator will copy the states and will iterate on them.
 
+`LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h)`
 
-**LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h)**
- 
 It's also possible to drop the s parameter, this will mean no evolution to the pattern (same as setting s = 1).
 
-**LifeIterator* NewIterator(int x, int y, int w, int h)**
+`LifeIterator* NewIterator(int x, int y, int w, int h)`
 
 You can also just iterate on (x, y) without using any life state. This iterator will have empty state as default. 
 
 
 ====
 
-**int Next(LifeIterator* iter)**
+`int Next(LifeIterator* iter)`
 
 Iterators have current state. *LifeIterator* has the following properties for the current state:
 
@@ -345,13 +347,13 @@ States - input states array evolved (or otherwise given).
 The next operator, goes to the next thing that needs to be checked. It usually returns SUCCESS, while FAIL returned only when it finish, and returns to it's *initial state* after that. 
 
 
-**int Next(LifeIterator* iter1, LifeIterator* iter2)**
+`int Next(LifeIterator* iter1, LifeIterator* iter2)`
 
-**int Next(LifeIterator* iter1, LifeIterator* iter2, LifeIterator* iter3)**
+`int Next(LifeIterator* iter1, LifeIterator* iter2, LifeIterator* iter3)`
 
 Few iterator can be combined, and Next will work for few iterators as well, this works for up to 6 input iterators. 
 
-**int Next(LifeIterator *iter1[], int numIters)**
+`int Next(LifeIterator *iter1[], int numIters)`
 
 If for some reason you have more than 6 iterators, or just want to use arrays, you can use this overload. 
 
@@ -359,46 +361,46 @@ If for some reason you have more than 6 iterators, or just want to use arrays, y
 
 ====
 
-**void Reset(LifeIterator* iter)**
+`void Reset(LifeIterator* iter)`
 
 Set the current state to *initial state*. 
 
 
 ====
 
-**void FreeIterator(LifeIterator* iter)**
+`void FreeIterator(LifeIterator* iter)`
 
 Iterator is a bit heavy object, so it needs function to free memory. 
 
 ====
 
-**void PutState(LifeState* state, LifeIterator* iter)**
+`void PutState(LifeState* state, LifeIterator* iter)`
 
 LifeIterator can be placed in any LifeState object using PutState. 
 
-**void PutState(LifeIterator* iter)**
+`void PutState(LifeIterator* iter)`
 
 This will place the iterator into GlobalState.
 
 ====
 
-**void Print(LifeIterator* iter)**
+`void Print(LifeIterator* iter)`
 
 Print iterator state (x, y, s)
 
-**void Print(LifeIterator* iter, char*  name)**
+`void Print(LifeIterator* iter, char*  name)`
 
 Print iterator state as functional code.
 
 ====
 
-**void SetCurrent(LifeIterator* iter, int curx, int cury, int curs)**
+`void SetCurrent(LifeIterator* iter, int curx, int cury, int curs)`
 
 Set state of iterator (will continue to iterate from this state)
 
 ====
 
-**int Validate(LifeIterator *iter1, LifeIterator *iter2)**
+`int Validate(LifeIterator *iter1, LifeIterator *iter2)`
 
 If two iterators searching the same space (like two gliders in the same square), 
 Validate will return FAIL half the times, so that the pair space will search each pair only once. 
@@ -428,17 +430,17 @@ NewTarget needs target and inverse.
 
 ====
 
-**int ContainsTarget(LifeState* state, LifeTarget* target)**
+`int ContainsTarget(LifeState* state, LifeTarget* target)`
 
 Check if LifeState contains some target. Returns YES if it is and NO if not. 
 
-**int ContainsTarget(LifeTarget* target)**
+`int ContainsTarget(LifeTarget* target)`
 
 Check if GlobalState contains some target. Returns YES if it is and NO if not. 
 
 ====
 
-**void FreeTarget(LifeTarget* iter)**
+`void FreeTarget(LifeTarget* iter)`
 
 Freee memory of targer with
 
