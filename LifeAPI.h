@@ -262,10 +262,10 @@ int AreEqual(LifeState* pat1, LifeState* pat2)
 }
 
 
-int ContainsInverse(LifeState* main, LifeState* inverseSpark)
+int AreDisjoint(LifeState* pat1, LifeState* pat2)
 {
 	for(int i = 0; i < N; i++)
-		if(main->state[i] & inverseSpark->state[i])
+		if(pat1->state[i] & pat2->state[i])
 			return NO;
 			
 	return YES;
@@ -281,14 +281,14 @@ int Contains(LifeState* main, LifeState* spark)
 	return YES;
 }
 
-int Contains(LifeState* spark)
+int AllOn(LifeState* spark)
 {
 	return Contains(GlobalState, spark);
 }
 
-int ContainsInverse(LifeState* inverseSpark)
+int AllOff(LifeState* spark)
 {
-	return ContainsInverse(GlobalState, inverseSpark);
+	return AreDisjoint(GlobalState, spark);
 }
 LifeState* NewState()
 {
@@ -1065,27 +1065,27 @@ int Validate(LifeIterator *iter1, LifeIterator *iter2)
 
 typedef struct 
 {
-	LifeState* target;
-	LifeState* inverse;
+	LifeState* wanted;
+	LifeState* unwanted;
 	
 } LifeTarget;
 
-LifeTarget* NewTarget(LifeState* target, LifeState* inverse)
+LifeTarget* NewTarget(LifeState* wanted, LifeState* unwanted)
 {
 	LifeTarget* result = (LifeTarget*)(malloc(sizeof(LifeTarget)));
 	
-	result->target = NewState();
-	result->inverse = NewState();
+	result->wanted = NewState();
+	result->unwanted = NewState();
 
-	Copy(result->target, target);	
-	Copy(result->inverse, inverse);
+	Copy(result->wanted, wanted);	
+	Copy(result->unwanted, unwanted);
 	
 	return result;
 }
 
 int ContainsTarget(LifeState* state, LifeTarget* target)
 {
-	if(Contains(state, target->target) == YES && ContainsInverse(state, target->inverse) == YES)
+	if(Contains(state, target->wanted) == YES && AreDisjoint(state, target->unwanted) == YES)
 		return YES;
 	else
 		return NO;
@@ -1098,8 +1098,8 @@ int ContainsTarget(LifeTarget* target)
 
 void FreeTarget(LifeTarget* iter)
 {
-	free(iter -> inverse);
-	free(iter -> target);
+	free(iter -> wanted);
+	free(iter -> unwanted);
 	
 	free(iter);
 }
