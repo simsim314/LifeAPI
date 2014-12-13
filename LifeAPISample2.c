@@ -107,6 +107,6 @@ int main()
 		
 	}while(Next(gldIter) == SUCCESS);
 	
-	printf("\n\nFINISH");
+	printf("\n\nFINISH\n");
 	Continue();
 }
