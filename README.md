@@ -222,7 +222,7 @@ Clears GlobalState (on the first call in main, initializes all statics)
 
 
 ---
-Getting Information and reporting States================
+Getting Information and reporting States
 ====
 
 -----
