@@ -1,4 +1,4 @@
-Generat Information
+General Information
 ===
 
 LifeAPI provides comfortable functions (API) to manipulate, iterate, evolve, compare and report Life objects. This is mainly done in order to provide fast (using C++) but still comfortable search utility. 
@@ -55,10 +55,10 @@ Initializing LifeState
 
 To crate new LifeState you should use one of the following initializers: 
 
-LifeState* NewState()
-LifeState* NewState(char* rle)
-LifeState* NewState(char* rle, int dx, int dy)
-LifeState* NewState(char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
+**LifeState* NewState()**
+**LifeState* NewState(char* rle)**
+**LifeState* NewState(char* rle, int dx, int dy)**
+**LifeState* NewState(char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)**
 
 NewState() creates an empty state, otherwise you can pass rle, and transformation to it. 
 
