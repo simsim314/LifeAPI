@@ -290,7 +290,7 @@ General
 
 Iterators are made to replace the need for huge amount of loops. Say we want to place two gliders in two places, without iterators we will make loop on x, y, s of the first gliders and x1, y1, s1 of the second glider. This is 6 loops one inside the other which is pretty annoying. With iterators you will simply create two LifeIterators, and single loop which iterates on them both. 
 
-**LifeIterator** is small struct that have been built to easily iterate the usual searchable queries. 
+**LifeIterator** is small struct that has been built to easily iterate the usual searchable queries. 
 Usually we take some pattern, place it in some square, and evolve it some iterations. 
 Doing it for each place in this square. LifeIterator holds array of LifeStates, for each possible iteration to improve performance. 
 
