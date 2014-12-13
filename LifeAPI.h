@@ -313,7 +313,6 @@ int Contains(LifeState* main, LifeState* spark)
 	uint64_t * mainState = main->state;
 	uint64_t * sparkState = spark->state;
 	
-	//for(int i = 0; i <= N - 1; i++)
 	for(int i = min; i <= max; i++)
 		if((mainState[i] & sparkState[i]) != (sparkState[i]))
 			return NO;
