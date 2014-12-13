@@ -1,5 +1,5 @@
 General Information
-===
+=====
 
 LifeAPI provides comfortable functions (API) to manipulate, iterate, evolve, compare and report Life objects. This is mainly done in order to provide fast (using C++) but still comfortable search utility. 
 
@@ -22,7 +22,7 @@ Enjoy.
 
 
 API Documentation 
-==========
+====
 ---
 ---
 
@@ -77,7 +77,7 @@ One can also use the *Parse* (see lower) function after the initial NewState().
 
 **NOTE:** Returns SUCCESS on succesfull parsing otherwise FAIL. Doesn't do anything if Parse failed
 
-====
+
 
 `int Parse(LifeState* lifeState, char* rle)`
 
@@ -111,7 +111,6 @@ Transforming is done by Transform. In the usual way golly does that.
 
 **NOTE:**  Move and Transform do exactly the same thing. It was created to conserve golly naming conventions. 
 
-====
 
 `void Copy(LifeState* main, LifeState* delta, char* op)`
 
@@ -133,7 +132,7 @@ Copy with *op =  "or".
 
 Fast joining operation - as fast as move, but doesn't change the delta state. 
 
-====
+
 
 `void SetCell(LifeState* state, int x, int y, int val)`
 
@@ -141,27 +140,27 @@ Fast joining operation - as fast as move, but doesn't change the delta state.
 
 Set or get specific cell value. Works with one-two clock ticks, but might easily be overused. 
 
-====
+
 
 `void Evolve(LifeState* state, int numIters)`
 
 Evolve pattern numIter generations.
 
 
-====
+
 
 `void Capture(LifeState* cap, int idx)`
 
 Capture state into Captures array with index idx.
 
 
-====
+
 
 `void ClearData(LifeState* state)`
 
 Clears all the data inside LifeState.
 
-====
+
 
 `void Inverse(LifeState* state)`
 
@@ -200,7 +199,7 @@ These *PutState* overloads do to the GlobalState what *NewState* + *Parse* do to
 
 These *PutState* overloads *PutState* doing what *Copy* does to regular state, but to the GlobalState:
 
-====
+
 
 `void SetCell(int x, int y, int val)`
 
@@ -208,13 +207,13 @@ These *PutState* overloads *PutState* doing what *Copy* does to regular state, b
 
 Overloads for GlobalState (no input state). 
 
-====
+
 
 `void Run(int numIter)`
 
 Evolve GlobalState
 
-====
+
 
 `void New()`
 
@@ -222,8 +221,8 @@ Clears GlobalState (on the first call in main, initializes all statics)
 
 
 ---
-Getting Information and reporting States================
-====
+Getting Information and reporting States
+
 
 -----
 For any LifeState
@@ -233,27 +232,27 @@ For any LifeState
 
 get number of cells turned on - uses fast built in function. 
 
-====
+
 
 `int AreEqual(LifeState* pat1, LifeState* pat2)`
 
 returns YES if pat1 and pat2 are the same otherwise returns NO
 
-====
+
 
 `int Contains(LifeState* main, LifeState* spark)`
 
 returns YES of main contains some "spark" on the same exact place - doesn't include the 0 state. 
 
 
-====
+
 
 `int ContainsInverse(LifeState* main, LifeState* inverseSpark)`
 
 returns YES of inverse of main contains some "inverseSpark". 
 
 
-====
+
 
 `void PrintRLE(LifeState  * lifeState)`
 
@@ -261,7 +260,7 @@ Print the rle of LifeState into console.
 
 **NOTE:** The rle comes out messed up many times due to console issue. Copy-paste it into text editor, and remove all "\n" from the rle, only then paste into golly 
 
-====
+
 
 `void Print(LifeState *state)`
 Print the pattern into the console
@@ -283,7 +282,7 @@ For GlobalState
 
 ---
 Iterators 
-==============
+==
 
 ---
 General
@@ -333,7 +332,7 @@ It's also possible to drop the s parameter, this will mean no evolution to the p
 You can also just iterate on (x, y) without using any life state. This iterator will have empty state as default. 
 
 
-====
+
 
 `int Next(LifeIterator* iter)`
 
@@ -359,20 +358,20 @@ If for some reason you have more than 6 iterators, or just want to use arrays, y
 
 **NOTE:** For two or more iterators Next function will print the state of the last iterator, when it changes. 
 
-====
+
 
 `void Reset(LifeIterator* iter)`
 
 Set the current state to *initial state*. 
 
 
-====
+
 
 `void FreeIterator(LifeIterator* iter)`
 
 Iterator is a bit heavy object, so it needs function to free memory. 
 
-====
+
 
 `void PutState(LifeState* state, LifeIterator* iter)`
 
@@ -382,7 +381,7 @@ LifeIterator can be placed in any LifeState object using PutState.
 
 This will place the iterator into GlobalState.
 
-====
+
 
 `void Print(LifeIterator* iter)`
 
@@ -392,13 +391,13 @@ Print iterator state (x, y, s)
 
 Print iterator state as functional code.
 
-====
+
 
 `void SetCurrent(LifeIterator* iter, int curx, int cury, int curs)`
 
 Set state of iterator (will continue to iterate from this state)
 
-====
+
 
 `int Validate(LifeIterator *iter1, LifeIterator *iter2)`
 
@@ -410,7 +409,7 @@ NOTE: if you use Validate, make sure the components are placed at same relative 
 
 ---
 Search for target
-======================
+==
 
 ---
 General
@@ -428,7 +427,7 @@ NewTarget needs target and inverse.
 
 **NOTE:** Make sure the inverse and the target are placed relative to the same (0,0) (using rle, it's easy to mess up). 
 
-====
+
 
 `int ContainsTarget(LifeState* state, LifeTarget* target)`
 
@@ -438,14 +437,14 @@ Check if LifeState contains some target. Returns YES if it is and NO if not.
 
 Check if GlobalState contains some target. Returns YES if it is and NO if not. 
 
-====
+
 
 `void FreeTarget(LifeTarget* iter)`
 
 Freee memory of targer with
 
-====
+
 
 ---
-==============================
+==
 Written by Michael Simkin 2014
