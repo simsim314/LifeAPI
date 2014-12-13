@@ -9,19 +9,26 @@ LifeAPI can utilize all 64 bits of 64 bit machine. That means if you compile it 
 
 LifeAPI uses CamelCase convention for its functions, but it's very similar to golly python functionality, naming, and parameters input/overloads. As it was made to replace to some extent search I've made previously in golly, much of golly function naming and other conventions are present. 
 
----
 
-Here is a short description of the API: 
 
-LifeAPI works with object called LifeState (like cells in golly). Each state is 64x64. The iterations are on torus.  
+API Documentation 
+==========
+
+
+
+
+General
+===
+
+LifeAPI works with object called **LifeState** (like cells in golly). Each state is 64x64. The iterations are on torus.  
 Each LifeState is treated as part of the universe, with (0, 0) in the centre. Each LifeStates contains array of N longs, 
 and Life Rule is hard coded into bitwise iteration. LifeStates also contains min and max - and doesn't iterate on all the space when it's not necessary. 
  
-NOTE: min-max are not optimized to use torus, and patterns that use the torus properties of LifeAPI will work slower.
+**NOTE:** min-max are not optimized to use torus, and patterns that use the torus properties of LifeAPI will work slower.
 
-NOTE: LifeStates is "column" based, in the sense that long and thin patterns will work faster, but this is usually neglectable - unless one has very long and very thin pattern. 
+**NOTE:** LifeStates is "column" based, in the sense that long and thin patterns will work faster, but this is usually neglectable - unless one has very long and very thin pattern. 
 
-NOTE: The space is 64x64 and it's currently intended to work with this limited space, it's enough for large amount of serchs. 
+**NOTE:** The space is 64x64 and it's currently intended to work with this limited space, it's enough for large amount of serchs. 
 ---
 ====================Global Objects================
 
