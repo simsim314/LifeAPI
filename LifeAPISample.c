@@ -62,17 +62,11 @@ int main()
 		//potential glider 
 		if(GetPop() == 5)
 		{	
-			//just to be sure let's fit the min and max of GlobalState.
-			FitMinMax(GlobalState);
 			int min = GlobalState->min;
 			int max = GlobalState->max;
 			
 			//evolve 
 			Run(16);
-			
-			FitMinMax(GlobalState);
-			
-			//if min and max changed this means it's not still life 
 			if(GetPop() == 5 && !(min == GlobalState->min && max == GlobalState->max))
 			{
 				//Success! let's report it here.
@@ -84,15 +78,17 @@ int main()
 				PutState(blckiter1);
 				PutState(blck);
 				
-				printf("\n\n       SUCCESS!!    \n\n");
-				printf("Here is the blockic seed:    \n\n");				
+				//printf("\n\n       SUCCESS!!    \n\n");
+				//printf("Here is the blockic seed:    \n\n");				
 				//The iterators state is change only on Next. 
-				PrintRLE();
-				Print();
+				
+				//Print();
+				
+				//PrintRLE();
 				
 				printf("\n\nYou can copy-paste the rle into golly (remember to remove \"new line\" symbols)!!    \n\n");
+				//Continue();
 				
-				Continue();
 			}
 		
 		}
