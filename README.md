@@ -52,18 +52,21 @@ Each LifeAPI application Starts with the line **New();** in main. This is made t
 Initializing LifeState
 ====================
 
-
-To crate new LifeState you should use one of the following initializers: 
-
 **LifeState* NewState()**
+
 **LifeState* NewState(char* rle)**
+
 **LifeState* NewState(char* rle, int dx, int dy)**
+
 **LifeState* NewState(char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)**
 
-NewState() creates an empty state, otherwise you can pass rle, and transformation to it. 
+To crate new LifeState you first use one of the initializers. 
 
-One can also use Parse function after the initial NewState(),  
-Returns SUCCESS on succesfull parsing otherwise FAIL. Doesn't do anything if Parse failed
+**NewState()** creates an empty state, otherwise you can pass *rle*, and *transformation* to it. 
+
+One can also use the **Parse** (see lower) function after the initial NewState(). 
+
+**NOTE:** Returns SUCCESS on succesfull parsing otherwise FAIL. Doesn't do anything if Parse failed
 
 ====
 
