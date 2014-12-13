@@ -19,9 +19,8 @@ NOTE: min-max are not optimized to use torus, and patterns that use the torus pr
 NOTE: LifeStates is "column" based, in the sense that long and thin patterns will work faster, but this is usually neglectable - unless one has very long and very thin pattern. 
 
 NOTE: The space is 64x64 and it's currently intended to work with this limited space, it's enough for large amount of serchs. 
-
----                    
-==============================Global Object============================
+---
+====================Global Objects================
 
 First of all there are some static objects in LifeAPI. 
 
@@ -36,11 +35,9 @@ Each LifeAPI application Starts with the line New(); in main. This is made to in
 NOTE: GlobalState is not made to improve performance, and iterating any other state will works at the same speed, but it allows more simple coding 
 (usually functions that emit the state as first parameter, mainpulate GlobalState). 
 
+---
 
-
----                    Creating and initializing States
-
-
+====================Creating and initializing States================
 
 To crate new LifeState you should use one of the following initializers: 
 
@@ -54,7 +51,7 @@ NewState() creates an empty state, otherwise you can pass rle, and transformatio
 One can also use Parse function after the initial NewState(),  
 Returns SUCCESS on succesfull parsing otherwise FAIL. Doesn't do anything if Parse failed
 
-=======
+====
 
 int Parse(LifeState* lifeState, char* rle)
 int Parse(LifeState* lifeState, char* rle, int dx, int dy)
@@ -62,10 +59,11 @@ int Parse(LifeState* lifeState, char* rle, int dx, int dy, int dx, int dy, int d
 
 NOTE: The overloads the doing usual parsing, and then use transformation after the parsing. 
 
----                    Manipulating States================
+---
+====================Manipulating States================
 
 
-=======For any LifeState
+----------For any LifeState--------
 
 Transforming: 
 
@@ -76,7 +74,7 @@ void Transform(LifeState* state, int dx, int dy, int dxx, int dxy, int dyx, int 
 NOTE: Transform with rotation/reflection parameters is relatively slow function that takes the same amount as about 20 iterations. 
 Inside the search use only Move function, prepare beforehand all necessary transformations. This option is made mainly for simple setup. 
 
----
+====
 
 The copy is made to apply "delta" LifeState onto main LifeState. 
 The third parameter *op, should be one of the four strings:  "copy", "or", "xor", "and".
@@ -92,28 +90,28 @@ void Join(LifeState* main, LifeState* delta)
 Fast joining operation - as fast as move, but doesn't change the delta state. 
 void Join(LifeState* main, LifeState* delta, int dx, int dy) 
 
----
+====
 
 Set or get specific cell value. Works with one-two clock ticks, but might easily be overused. 
 void SetCell(LifeState* state, int x, int y, int val)
 int GetCell(LifeState* state, int x, int y)
 
----
+====
 
 To evolve pattern numIter generations use: 
 void Evolve(LifeState* state, int numIters)
 
----
+====
 
 To capture state into Captures array with index (idx): 
 void Capture(LifeState* cap, int idx)
 
----
+====
 
 clears all the data inside LifeState
 void ClearData(LifeState* state)
 
----
+====
 
 sets the 0 to 1 and 1 to 0 of LifeState
 void Inverse(LifeState* state)
@@ -135,52 +133,54 @@ void PutState(LifeState* state, char* op)
 void PutState(LifeState* state, int dx, int dy)
 void PutState(LifeState* state, int dx, int dy, int dy, int dxx, int dxy, int dyx, int dyy)
 
----
+====
 
 Overloads for GlobalState:
 void SetCell(int x, int y, int val)
 void GetCell(int x, int y, int val)
 
----
+====
 
 Evolve GlobalState: 
 void Run(int numIter)
 
----
+====
 
 Clears GlobalState (on the first call initialize all statics) 
 void New()
 
----                    Getting Information and reporting States
+---
+
+====================Getting Information and reporting States================
 
 ----------For any LifeState--------
 
 get number of cells turned on - uses fast built in function. 
 int GetPop(LifeState* state)
 
----
+====
 
 returns YES if pat1 and pat2 are the same otherwise returns NO
 int AreEqual(LifeState* pat1, LifeState* pat2)
 
----
+====
 
 returns YES of main contains some "spark" on the same exact place - doesn't include the 0 state. 
 int Contains(LifeState* main, LifeState* spark)
 
----
+====
 
 returns YES of inverse of main contains some "inverseSpark". 
 int ContainsInverse(LifeState* main, LifeState* inverseSpark)
 
----
+====
 
 Print the rle of LifeState into console. 
 void PrintRLE(LifeState  * lifeState)
 
 NOTE: The rle comes out messed up many times due to console issue. Copy-paste it into text editor, and remove all "\n" from the rle, only then paste into golly 
 
----
+====
 
 Print the pattern into the console
 void Print(LifeState *state)
@@ -194,8 +194,9 @@ void PrintRLE()
 int Contains(LifeState* spark)
 int ContainsInverse(LifeState* inverseSpark)
 
+---
 
----                    Iterators =================
+===================== Iterators =================
 
 LifeIterator is small struct that have been built to easily iterate the usual searchable queries. 
 Usually we take some pattern, place it in some square, and evolve it some iterations. 
@@ -209,7 +210,7 @@ w - Width
 h - Height
 s - Number of iterations to evolve in each place. 
 
----
+====
 
 NewIterator by default is creating the pattern and evolving it s times (holding the array of states in memory). "leave" can be added to avoid evolving. 
 It's also possible to specify list of states, the iterator will copy the states and will iterate on them. It's also possible to drop the s parameter, 
@@ -220,7 +221,7 @@ LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h, int s)
 LifeIterator* NewIterator(LifeState* states[], int x, int y, int w, int h, int s)
 LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h, int s, char* op)
 
----
+====
 
 You can also just iterate on (x, y) without using any life state. This iterator will have empty state as default. 
 LifeIterator* NewIterator(int x, int y, int w, int h)
@@ -243,17 +244,17 @@ int Next(LifeIterator *iter1[], int numIters)
 
 NOTE: For two or more iterators Next function will print the state of the last iterator, when it changes. 
 
----
+====
 
 Set the current state to 0 initial state. 
 void Reset(LifeIterator* iter)
 
----
+====
 
 Iterator is a bit heavy object, so it needs function to free memory. 
 void FreeIterator(LifeIterator* iter)
 
----
+====
 
 Except of that, LifeIterator can be placed in any LifeState object using Join 
 void PutState(LifeState* state, LifeIterator* iter)
@@ -261,7 +262,7 @@ void PutState(LifeState* state, LifeIterator* iter)
 Or into GlobalState
 void PutState(LifeIterator* iter)
 
----
+====
 
 Print iterator state
 void Print(LifeIterator* iter)
@@ -269,12 +270,12 @@ void Print(LifeIterator* iter)
 Print iterator state as functional code
 void Print(LifeIterator* iter, char*  name)
 
----
+====
 
 Set state of iterator (will continue to iterate from this state)
 void SetCurrent(LifeIterator* iter, int curx, int cury, int curs)
 
----
+====
 
 If two iterators searching the same space (like two gliders in the same square), 
 Validate will return FAIL half the times, so that the pair space will search each pair only once. 
@@ -284,7 +285,9 @@ int Validate(LifeIterator *iter1, LifeIterator *iter2)
 
 NOTE: if you use Validate, make sure the components are placed at same relative place (usually (0,0)), so that (i1, i2) and (i2, i1) will be the same. 
 
----                    Search for target===============
+---
+
+======================Search for target===============
 
 LifeTarget is struct that contains target, and negative of it (the expected on and off cells). While the negative, is with "off" cells on. 
 
@@ -293,7 +296,7 @@ LifeTarget* NewTarget(LifeState* target, LifeState* inverse)
 
 NOTE: Make sure the inverse and the target are placed relative to the same (0,0) (using rle, it's easy to mess up). 
 
----
+====
 
 Check if LifeState contains some target. Returns YES if it is and NO if not. 
 int ContainsTarget(LifeState* state, LifeTarget* target)
@@ -301,13 +304,13 @@ int ContainsTarget(LifeState* state, LifeTarget* target)
 Check if GlobalState contains some target. Returns YES if it is and NO if not. 
 int ContainsTarget(LifeTarget* target)
 
----
+====
 
 Freee memory of targer with
 void FreeTarget(LifeTarget* iter)
 
+====
+
 ---
-
-
 ==============================
 Written by Michael Simkin 2014
