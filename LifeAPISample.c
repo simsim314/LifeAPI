@@ -28,7 +28,7 @@ int main()
 
 	//	Let's measure performance (remove all Continue(); statements to see the real time). 
 	clock_t t = clock();
-			
+
 	do
 	{
 		//clear previous junk from GlobalState 
@@ -59,6 +59,7 @@ int main()
 		//Just iterate - the glider will run all over tha place - we're on torus anyway 
 		Run(180);
 		
+
 		//potential glider 
 		if(GetPop() == 5)
 		{	
@@ -93,7 +94,6 @@ int main()
 		
 		}
 	}
-	//You can use Next for both iterators (works for up to 6) 
 	while(Next(blckiter1, glditer) == SUCCESS);
 	
 	t = clock() - t;

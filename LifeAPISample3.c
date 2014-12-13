@@ -99,7 +99,7 @@ int main()
 			Continue();
 			printf("\Searching...\n\n");
 		}
-	}while(Next(iter1, iter2, "none") == SUCCESS);
+	}while(Next(iter1, iter2) == SUCCESS);
 	
 	printf("\nFinished");
 	getch();

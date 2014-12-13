@@ -246,12 +246,13 @@ void Copy(LifeState* main, LifeState* delta)
 int GetPop(LifeState* state)
 {
 	int pop = 0;
+	int min = state->min;
+	int max = state->max;
+	uint64_t * mainState = state->state;
 	
-	for(int i =0; i <= N - 1; i++)
+	for(int i = min; i <= max; i++)
 	{
-		
-		if(state->state[i] != 0)
-			pop += __builtin_popcountll(state->state[i]);
+		pop += __builtin_popcountll(mainState[i]);
 	}
 	
 	return pop;
@@ -980,7 +981,7 @@ int Next(LifeIterator *iter1[], int numIters, char* op)
 		if(Next(iter1[i]) == SUCCESS)
 			return SUCCESS;
 	}
-			
+	
 	return FAIL;
 }
 
@@ -992,7 +993,7 @@ int Next(LifeIterator *iter1, LifeIterator *iter2, char* op)
 
 int Next(LifeIterator *iter1, LifeIterator *iter2)
 {
-	Next(iter1, iter2, "print");
+	return Next(iter1, iter2, "print");
 }
 
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, char* op)
@@ -1003,7 +1004,7 @@ int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, char* op
 
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3)
 {
-	Next(iter1, iter2, iter3, "print");
+	return Next(iter1, iter2, iter3, "print");
 }
 
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, char* op)
@@ -1013,7 +1014,7 @@ int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIter
 }
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4)
 {
-	Next(iter1, iter2, iter3, iter4, "print");
+	return Next(iter1, iter2, iter3, iter4, "print");
 }
 
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, LifeIterator *iter5, char* op)
@@ -1024,7 +1025,7 @@ int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIter
 
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, LifeIterator *iter5)
 {
-	Next(iter1, iter2, iter3, iter4, iter5, "print");
+	return Next(iter1, iter2, iter3, iter4, iter5, "print");
 }
 
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, LifeIterator *iter5, LifeIterator *iter6, char* op)
@@ -1035,12 +1036,12 @@ int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIter
 
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, LifeIterator *iter5, LifeIterator *iter6)
 {
-	Next(iter1, iter2, iter3, iter4, iter5, iter6, "print");
+	return Next(iter1, iter2, iter3, iter4, iter5, iter6, "print");
 }
 
 int Next(LifeIterator *iter1[], int numIters)
 {
-	Next(iter1, numIters, "print");
+	return Next(iter1, numIters, "print");
 }
 
 void FreeIterator(LifeIterator* iter)
