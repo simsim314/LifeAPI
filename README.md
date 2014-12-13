@@ -70,17 +70,27 @@ One can also use the **Parse** (see lower) function after the initial NewState()
 
 ====
 
-int Parse(LifeState* lifeState, char* rle)
-int Parse(LifeState* lifeState, char* rle, int dx, int dy)
-int Parse(LifeState* lifeState, char* rle, int dx, int dy, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
+**int Parse(LifeState* lifeState, char* rle)**
 
-NOTE: The overloads the doing usual parsing, and then use transformation after the parsing. 
+
+**int Parse(LifeState* lifeState, char* rle, int dx, int dy)**
+
+
+**int Parse(LifeState* lifeState, char* rle, int dx, int dy, int dx, int dy, int dxx, int dxy, int dyx, int dyy)**
+
+Parse *rle* and place it at (0,0) - i.e. in the middle. 
+
+**NOTE:** The overloads are doing the usual parsing, and then apply transformation if the parsing was succesfull, otherwise they leave the LifeState as is, and return FAIL. 
+
+**NOTE:** Returns SUCCESS on succesfull parsing otherwise FAIL. Doesn't do anything if Parse failed
 
 ---
-====================Manipulating States================
+Manipulating States
+====================
 
 
-----------For any LifeState--------
+For any LifeState
+----------
 
 Transforming: 
 
