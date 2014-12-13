@@ -1,16 +1,12 @@
-LifeAPI provides comfortable functions (API) to manipulate, iterate, evolve, compare and report Life objects. This is mainly done
-in order to provide fast (using C++) but still comfortable search utility. 
+LifeAPI provides comfortable functions (API) to manipulate, iterate, evolve, compare and report Life objects. This is mainly done in order to provide fast (using C++) but still comfortable search utility. 
 
-LifeAPI is C++ application (compiles only with c++ compiler, specifically g++ is recommended), that uses mainly the overload functionality of C++. It doesn't use classes, and compiling it will not require Make, 
-you only need to #include "LifeAPI.h". Many times it's the only #include that you will need, for this sort of applications. It works as fast as C. 
+LifeAPI is C++ application (compiles only with c++ compiler, specifically g++ is recommended), that uses mainly the overload functionality of C++. It doesn't use classes, and compiling it will not require Make, you only need to #include "LifeAPI.h". Many times it's the only #include that you will need, for this sort of applications. It works as fast as C. 
 
-LifeAPI can utilize all 64 bits of 64 bit machine. That means if you compile it on 64-bit, it will work twice as fast just due to 64 bit, 
-just make sure to set the compiler options correctly. Of course it utilize the full potential of 32 bit machine as well. 
+LifeAPI can utilize all 64 bits of 64 bit machine. That means if you compile it on 64-bit, it will work twice as fast just due to 64 bit, just make sure to set the compiler options correctly. Of course it utilize the full potential of 32 bit machine as well. 
 
-LifeAPI uses CamelCase convention for its functions, but it's very similar to golly python functionality, naming, and parameters input/overloads.
-As it was made to replace to some extent search I've made previously in golly, much of golly function naming and other conventions are present. 
+LifeAPI uses CamelCase convention for its functions, but it's very similar to golly python functionality, naming, and parameters input/overloads. As it was made to replace to some extent search I've made previously in golly, much of golly function naming and other conventions are present. 
 
-==========================================
+---
 
 Here is a short description of the API: 
 
@@ -24,7 +20,7 @@ NOTE: LifeStates is "column" based, in the sense that long and thin patterns wil
 
 NOTE: The space is 64x64 and it's currently intended to work with this limited space, it's enough for large amount of serchs. 
 
-====================Global Objects================
+---                    Global Objects================
 
 First of all there are some static objects in LifeAPI. 
 
@@ -39,7 +35,11 @@ Each LifeAPI application Starts with the line New(); in main. This is made to in
 NOTE: GlobalState is not made to improve performance, and iterating any other state will works at the same speed, but it allows more simple coding 
 (usually functions that emit the state as first parameter, mainpulate GlobalState). 
 
-====================Creating and initializing States================
+
+
+---                    Creating and initializing States
+
+
 
 To crate new LifeState you should use one of the following initializers: 
 
@@ -53,7 +53,7 @@ NewState() creates an empty state, otherwise you can pass rle, and transformatio
 One can also use Parse function after the initial NewState(),  
 Returns SUCCESS on succesfull parsing otherwise FAIL. Doesn't do anything if Parse failed
 
----
+=======
 
 int Parse(LifeState* lifeState, char* rle)
 int Parse(LifeState* lifeState, char* rle, int dx, int dy)
@@ -61,10 +61,10 @@ int Parse(LifeState* lifeState, char* rle, int dx, int dy, int dx, int dy, int d
 
 NOTE: The overloads the doing usual parsing, and then use transformation after the parsing. 
 
-====================Manipulating States================
+---                    Manipulating States================
 
 
-----------For any LifeState--------
+=======For any LifeState
 
 Transforming: 
 
@@ -150,7 +150,7 @@ void Run(int numIter)
 Clears GlobalState (on the first call initialize all statics) 
 void New()
 
-====================Getting Information and reporting States================
+---                    Getting Information and reporting States
 
 ----------For any LifeState--------
 
@@ -194,7 +194,7 @@ int Contains(LifeState* spark)
 int ContainsInverse(LifeState* inverseSpark)
 
 
-===================== Iterators =================
+---                    Iterators =================
 
 LifeIterator is small struct that have been built to easily iterate the usual searchable queries. 
 Usually we take some pattern, place it in some square, and evolve it some iterations. 
@@ -283,7 +283,7 @@ int Validate(LifeIterator *iter1, LifeIterator *iter2)
 
 NOTE: if you use Validate, make sure the components are placed at same relative place (usually (0,0)), so that (i1, i2) and (i2, i1) will be the same. 
 
-======================Search for target===============
+---                    Search for target===============
 
 LifeTarget is struct that contains target, and negative of it (the expected on and off cells). While the negative, is with "off" cells on. 
 
