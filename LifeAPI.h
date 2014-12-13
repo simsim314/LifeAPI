@@ -1123,6 +1123,9 @@ LifeTarget* NewTarget(LifeState* target, LifeState* inverse)
 	Copy(result->target, target);	
 	Copy(result->inverse, inverse);
 	
+	RecalculateMinMax(result->target);
+	RecalculateMinMax(result->inverse);
+	
 	return result;
 }
 
