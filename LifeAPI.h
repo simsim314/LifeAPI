@@ -1103,3 +1103,21 @@ void FreeTarget(LifeTarget* iter)
 	
 	free(iter);
 }
+
+void GetBoundary(LifeState* state, LifeState* boundary)
+{
+    for(int i = 0; i < N; i++) {
+        uint64_t col = state->state[i];
+        Temp->state[i] = CirculateLeft(col) | CirculateRight(col);
+    }
+
+    boundary->state[0] = Temp->state[N-1] | Temp->state[0] | Temp->state[1];
+
+    for(int i = 1; i < N-1; i++)
+        boundary->state[i] = Temp->state[i-1] | Temp->state[i] | Temp->state[i+1];
+
+    boundary->state[N-1] = Temp->state[N-2] | Temp->state[N-1] | Temp->state[0];
+    
+    for(int i = 0; i < N; i++)
+        boundary->state[i] &= ~state->state[i];
+}
