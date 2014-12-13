@@ -230,26 +230,26 @@ For any LifeState
 
 `int GetPop(LifeState* state)`
 
-get number of cells turned on - uses fast built in function. 
+Get number of cells turned on - uses fast built in function. 
 
 ====
 
 `int AreEqual(LifeState* pat1, LifeState* pat2)`
 
-returns YES if pat1 and pat2 are the same otherwise returns NO
+Returns YES if pat1 and pat2 are the same otherwise returns NO
 
 ====
 
 `int Contains(LifeState* main, LifeState* spark)`
 
-returns YES of main contains some "spark" on the same exact place - doesn't include the 0 state. 
+Returns YES of main contains some "spark" on the same exact place - doesn't include the 0 state. 
 
 
 ====
 
 `int ContainsInverse(LifeState* main, LifeState* inverseSpark)`
 
-returns YES of inverse of main contains some "inverseSpark". 
+Returns YES of inverse of main contains some "inverseSpark". 
 
 
 ====
@@ -441,7 +441,7 @@ Check if GlobalState contains some target. Returns YES if it is and NO if not.
 
 `void FreeTarget(LifeTarget* iter)`
 
-Freee memory of targer with
+Free memory of targer with
 
 ====
 
