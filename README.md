@@ -126,34 +126,44 @@ Copy with *op =  "or".
 
 Fast joining operation - as fast as move, but doesn't change the delta state. 
 
-
 ====
+
+**void SetCell(LifeState* state, int x, int y, int val)**
+
+**int GetCell(LifeState* state, int x, int y)**
 
 Set or get specific cell value. Works with one-two clock ticks, but might easily be overused. 
-void SetCell(LifeState* state, int x, int y, int val)
-int GetCell(LifeState* state, int x, int y)
 
 ====
+
+**void Evolve(LifeState* state, int numIters)**
 
 To evolve pattern numIter generations use: 
-void Evolve(LifeState* state, int numIters)
+
 
 ====
+
+**void Capture(LifeState* cap, int idx)**
 
 To capture state into Captures array with index (idx): 
-void Capture(LifeState* cap, int idx)
+
 
 ====
+
+**void ClearData(LifeState* state)**
 
 clears all the data inside LifeState
-void ClearData(LifeState* state)
 
 ====
 
-sets the 0 to 1 and 1 to 0 of LifeState
-void Inverse(LifeState* state)
+**void Inverse(LifeState* state)**
 
----------For GlobalState----------
+sets the 0 to 1 and 1 to 0 of LifeState
+
+
+---------
+For GlobalState----------
+---------
 
 Almost each function that manipulates LifeState has counterpart (or overload) that manipulates GlobalState
 
