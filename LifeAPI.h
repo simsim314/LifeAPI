@@ -21,6 +21,9 @@
 #  define __builtin_popcount __popcnt64
 #endif
 
+enum CopyType { COPY, OR, XOR, AND };
+enum EvolveType { EVOLVE, LEAVE };
+
 typedef struct 
 {
 	int min;
@@ -151,25 +154,25 @@ void Print(LifeState *state)
 }
 
 
-void Copy(LifeState* main, LifeState* delta, char* op)
+void Copy(LifeState* main, LifeState* delta, CopyType op)
 {
-	if(strcmp(op,"copy") == 0)
+	if(op == COPY)
 	{	
 		for(int i = 0; i < N; i++)
 			main->state[i] = delta->state[i];
 	}
-	if(strcmp(op,"or") == 0)
+	if(op == OR)
 	{	
 		for(int i = 0; i < N; i++)
 			main->state[i] |= delta->state[i];
 	}
-	if(strcmp(op,"and") == 0)
+	if(op == AND)
 	{	
 		for(int i = 0; i < N; i++)
 			main->state[i] &= delta->state[i];
 		
 	}
-	if(strcmp(op,"xor") == 0)
+	if(op == XOR)
 	{	
 		for(int i = 0; i < N; i++)
 			main->state[i] ^= delta->state[i];
@@ -181,7 +184,7 @@ void Copy(LifeState* main, LifeState* delta, char* op)
 
 void Copy(LifeState* main, LifeState* delta)
 {
-	Copy(main, delta, "copy");
+	Copy(main, delta, COPY);
 }
 
 int GetPop(LifeState* state)
@@ -264,7 +267,7 @@ int ContainsInverse(LifeState* main, LifeState* inverseSpark)
 	ClearData(Temp);
 	Copy(Temp, main);
 	Inverse(Temp);
-	Copy(Temp, inverseSpark, "and");
+	Copy(Temp, inverseSpark, AND);
 	return AreEqual(Temp, inverseSpark);
 }
 
@@ -273,7 +276,7 @@ int Contains(LifeState* main, LifeState* spark)
 {
 	ClearData(Temp);
 	Copy(Temp, main);
-	Copy(Temp, spark, "and");
+	Copy(Temp, spark, AND);
 	
 	return AreEqual(Temp, spark);
 }
@@ -719,7 +722,7 @@ void Run(int numIter)
 
 void Join(LifeState* main, LifeState* delta)
 {	
-	Copy(main, delta , "or");
+	Copy(main, delta , OR);
 }
 
 void Join(LifeState* main, LifeState* delta, int dx, int dy)
@@ -816,7 +819,7 @@ typedef struct
 } LifeIterator;
 
 
-LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h, int s, char* op)
+LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h, int s, EvolveType op)
 {
 	LifeIterator* result = (LifeIterator*)(malloc(sizeof(LifeIterator)));
 
@@ -841,7 +844,7 @@ LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h, int s, c
 		result->States[i] = NewState();		
 		Copy(result->States[i], Temp);
 		
-		if(strcmp("evolve", op) == 0)
+		if(op == EVOLVE)
 			Evolve(Temp, 1);		
 	}
 	
@@ -851,7 +854,7 @@ LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h, int s, c
 
 LifeIterator* NewIterator(LifeState* states[], int x, int y, int w, int h, int s)
 {
-	LifeIterator* result = NewIterator(states[0], x, y, w, h, s, "leave");
+	LifeIterator* result = NewIterator(states[0], x, y, w, h, s, LEAVE);
 	
 	for(int i = 0; i < s; i++)
 	{
@@ -864,12 +867,12 @@ LifeIterator* NewIterator(LifeState* states[], int x, int y, int w, int h, int s
 
 LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h, int s)
 {
-	return NewIterator(state, x, y, w, h, s, "evolve");
+	return NewIterator(state, x, y, w, h, s, EVOLVE);
 }
 
 LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h)
 {
-	return NewIterator(state, x, y, w, h, 1, "leave");
+	return NewIterator(state, x, y, w, h, 1, LEAVE);
 }
 
 LifeIterator* NewIterator(int x, int y, int w, int h)
