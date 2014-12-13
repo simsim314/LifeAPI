@@ -19,7 +19,7 @@ API Documentation
 
 
 General
-===
+---
 
 LifeAPI works with object called **LifeState** (like cells in golly). Each state is 64x64. The iterations are on torus.  
 Each LifeState is treated as part of the universe, with (0, 0) in the centre. Each LifeStates contains array of N longs, 
@@ -33,7 +33,7 @@ and Life Rule is hard coded into bitwise iteration. LifeStates also contains min
 
 ---
 Global Objects
-====================================
+---
 
 First of all there are some static objects in LifeAPI. 
 
@@ -50,7 +50,7 @@ Each LifeAPI application Starts with the line **New();** in main. This is made t
 
 ---
 Initializing LifeState
-====================
+---
 
 **LifeState* NewState()**
 
@@ -62,9 +62,9 @@ Initializing LifeState
 
 To crate new LifeState you first use one of the initializers. 
 
-**NewState()** creates an empty state, otherwise you can pass *rle*, and *transformation* to it. 
+*NewState()* creates an empty state, otherwise you can pass *rle*, and *transformation* to it. 
 
-One can also use the **Parse** (see lower) function after the initial NewState(). 
+One can also use the *Parse* (see lower) function after the initial NewState(). 
 
 **NOTE:** Returns SUCCESS on succesfull parsing otherwise FAIL. Doesn't do anything if Parse failed
 
@@ -82,40 +82,47 @@ Parse *rle* and place it at (0,0) - i.e. in the middle.
 
 **NOTE:** The overloads are doing the usual parsing, and then apply transformation if the parsing was succesfull, otherwise they leave the LifeState as is, and return FAIL. 
 
-**NOTE:** Returns SUCCESS on succesfull parsing otherwise FAIL. Doesn't do anything if Parse failed
+**NOTE:** Returns SUCCESS on succesfull parsing otherwise FAIL. Doesn't do anything if Parse failed.
 
 ---
 Manipulating States
-====================
+---
 
 
-For any LifeState
-----------
+###For any LifeState
+---
 
-Transforming: 
+**void Transform(LifeState* state, int dx, int dy)**
 
-void Move(LifeState* state, int x, int y)
-void Transform(LifeState* state, int dx, int dy)
-void Transform(LifeState* state, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
+**void Move(LifeState* state, int x, int y)**
 
-NOTE: Transform with rotation/reflection parameters is relatively slow function that takes the same amount as about 20 iterations. 
-Inside the search use only Move function, prepare beforehand all necessary transformations. This option is made mainly for simple setup. 
+**void Transform(LifeState* state, int dx, int dy, int dxx, int dxy, int dyx, int dyy)**
+
+Transforming is done by Transform. In the usual way golly does that. 
+
+**NOTE:** Transform with rotation/reflection parameters is relatively slow function that takes the same amount as about 20 iterations. Inside the search use only Transform/Move function, prepare beforehand all necessary transformations. This option is made mainly to simplify setup. 
+
+**NOTE:**  Move and Transform do exactly the same thing. It was created to conserve golly naming conventions. 
 
 ====
+
+**void Copy(LifeState* main, LifeState* delta, char* op)**
 
 The copy is made to apply "delta" LifeState onto main LifeState. 
 The third parameter *op, should be one of the four strings:  "copy", "or", "xor", "and".
 
-void Copy(LifeState* main, LifeState* delta, char* op) 
 
-use Copy with default "copy". 
-void Copy(LifeState* main, LifeState* delta)
+**void Copy(LifeState* main, LifeState* delta)**
+Copy with *op = "copy". 
 
-use Copy with default "or".
-void Join(LifeState* main, LifeState* delta)
 
+**void Join(LifeState* main, LifeState* delta)**
+Copy with *op =  "or".
+
+
+**void Join(LifeState* main, LifeState* delta, int dx, int dy)**
 Fast joining operation - as fast as move, but doesn't change the delta state. 
-void Join(LifeState* main, LifeState* delta, int dx, int dy) 
+
 
 ====
 
