@@ -1,4 +1,4 @@
-#include "LifeAPI.h"
+#include "../LifeAPI.h"
 
 int GetCPU(int args, const char * argv[])
 {
