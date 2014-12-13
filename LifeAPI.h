@@ -3,11 +3,8 @@
 //Written by Michael Simkin 2014
 
 #include <stdio.h>
-#include <conio.h>
-#include <time.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 #define N 64
 #define CAPTURE_COUNT 10 
 #define MAX_ITERATIONS 200
