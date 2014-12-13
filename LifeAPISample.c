@@ -78,16 +78,16 @@ int main()
 				PutState(blckiter1);
 				PutState(blck);
 				
-				//printf("\n\n       SUCCESS!!    \n\n");
-				//printf("Here is the blockic seed:    \n\n");				
+				printf("\n\n       SUCCESS!!    \n\n");
+				printf("Here is the blockic seed:    \n\n");				
 				//The iterators state is change only on Next. 
 				
-				//Print();
+				Print();
 				
-				//PrintRLE();
+				PrintRLE();
 				
 				printf("\n\nYou can copy-paste the rle into golly (remember to remove \"new line\" symbols)!!    \n\n");
-				//Continue();
+				Continue();
 				
 			}
 		
