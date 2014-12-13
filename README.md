@@ -13,10 +13,11 @@ LifeAPI uses CamelCase convention for its functions, but it's very similar to go
 How to use
 ---
 
-1. Download LifeAPI.h 
+1. Download  [LifeAPI.h](www.github.com)
 2. Place it in the same folder with you code.
 3. #include "LifeAPI.h" in your code. 
 4. Compile with C++ compiler.
+*5. See LifeAPISample.c. 
 
 Enjoy. 
 
