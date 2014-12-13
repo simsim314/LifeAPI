@@ -459,7 +459,7 @@ void Transform(LifeState* state, int dx, int dy)
 	Move(state, dx, dy);
 }
 
-int Parse(LifeState* lifeState, char* rle, int dx, int dy)
+int Parse(LifeState* lifeState, const char* rle, int dx, int dy)
 {
 	char ch;
 	int cnt, i, j; 
@@ -533,12 +533,12 @@ int Parse(LifeState* lifeState, char* rle, int dx, int dy)
 	return SUCCESS;
 }
 
-int Parse(LifeState* lifeState, char* rle)
+int Parse(LifeState* lifeState, const char* rle)
 {
 	return Parse(lifeState, rle,  0, 0);
 }
 
-int Parse(LifeState* lifeState, char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
+int Parse(LifeState* lifeState, const char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
 {
 	int result = Parse(lifeState, rle);
 	
@@ -549,7 +549,7 @@ int Parse(LifeState* lifeState, char* rle, int dx, int dy, int dxx, int dxy, int
 }
 
 
-LifeState* NewState(char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
+LifeState* NewState(const char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
 {
 	LifeState* result = NewState();
 	Parse(result, rle);
@@ -558,7 +558,7 @@ LifeState* NewState(char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dy
 	return result;
 }
 
-LifeState* NewState(char* rle, int dx, int dy)
+LifeState* NewState(const char* rle, int dx, int dy)
 {
 	LifeState* result = NewState();
 	Parse(result, rle, dx, dy);
@@ -566,7 +566,7 @@ LifeState* NewState(char* rle, int dx, int dy)
 	return result;
 }
 
-LifeState* NewState(char* rle)
+LifeState* NewState(const char* rle)
 {
 	return NewState(rle, 0, 0);
 }
@@ -761,12 +761,12 @@ void PutState(LifeState* state, int dx, int dy, int dxx, int dxy, int dyx, int d
 	PutState(Temp);
 }
 
-void PutState(LifeState* state, char* op)
+void PutState(LifeState* state, CopyType op)
 {
 	Copy(GlobalState, state, op);
 }
 
-int PutState(char* rle)
+int PutState(const char* rle)
 {
 	ClearData(Temp);
 	int result = Parse(Temp, rle);
@@ -777,7 +777,7 @@ int PutState(char* rle)
 	return result;
 }
 
-int PutState(char* rle, int x, int y)
+int PutState(const char* rle, int x, int y)
 {
 	ClearData(Temp);
 	int result = Parse(Temp, rle, x, y);
@@ -788,7 +788,7 @@ int PutState(char* rle, int x, int y)
 	return result;
 }
 
-int PutState(char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
+int PutState(const char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
 {
 	ClearData(Temp);
 	int result = Parse(Temp, rle);
@@ -885,7 +885,7 @@ void Print(LifeIterator* iter)
 {
 	printf("\n(%d, %d, %d)", iter->curx, iter->cury, iter->curs);
 }
-void Print(LifeIterator* iter, char* name)
+void Print(LifeIterator* iter, const char* name)
 {
 	printf("\nSetCurrent(%s, %d, %d, %d);", name, iter->curx, iter->cury, iter->curs);
 }
