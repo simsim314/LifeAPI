@@ -1108,7 +1108,7 @@ void GetBoundary(LifeState* state, LifeState* boundary)
 {
     for(int i = 0; i < N; i++) {
         uint64_t col = state->state[i];
-        Temp->state[i] = CirculateLeft(col) | CirculateRight(col);
+        Temp->state[i] = col | CirculateLeft(col) | CirculateRight(col);
     }
 
     boundary->state[0] = Temp->state[N-1] | Temp->state[0] | Temp->state[1];
