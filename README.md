@@ -17,7 +17,7 @@ How to use
 2. Place it in the same folder with you code.
 3. #include "LifeAPI.h" in your code. 
 4. Compile with C++ compiler.
-*5. See LifeAPISample.c. 
+5. See samples [here](https://github.com/simsim314/LifeAPI). 
 
 Enjoy. 
 
