@@ -31,26 +31,27 @@ and Life Rule is hard coded into bitwise iteration. LifeStates also contains min
 
 **NOTE:** The space is 64x64 and it's currently intended to work with this limited space, it's enough for large amount of serchs. 
 
-
+---
 Global Objects
 ====================================
 
 First of all there are some static objects in LifeAPI. 
 
-**GlobalState** - it's the "main state" (like state in golly). 
+**GlobalState** - it's the "main state" (like state in golly). This is very important object, any funciton that emits LifeState as input, usually just works with *GlobalState*.
 
 *Captures* - LifeAPI provide the option to capture object into some array of "Captures". This allows to return to the LifeState later. 
 
 *Temp* - is just a temporary LifeState used in few places (so that malloc and free is not needed anywhere). 
 
-Each LifeAPI application Starts with the line New(); in main. This is made to initialize the GlobalState (empty universe), Capture, Temp etc. 
+Each LifeAPI application Starts with the line **New();** in main. This is made to initialize the GlobalState (empty universe), Capture, Temp etc. 
 
-NOTE: GlobalState is not made to improve performance, and iterating any other state will works at the same speed, but it allows more simple coding 
-(usually functions that emit the state as first parameter, mainpulate GlobalState). 
+**NOTE:** GlobalState is not made to improve performance, and iterating any other state will works at the same speed, but it allows more simple coding (usually functions that emit the state as first parameter, mainpulate GlobalState). 
+
 
 ---
+Initializing LifeState
+====================
 
-====================Creating and initializing States================
 
 To crate new LifeState you should use one of the following initializers: 
 
