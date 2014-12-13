@@ -118,6 +118,7 @@ The copy is made to apply "delta" LifeState onto main LifeState.
 The third parameter *op, should be one of the four strings:  "copy", "or", "xor", "and".
 
 
+
 `void Copy(LifeState* main, LifeState* delta)`
 
 Copy with *op = "copy". 
@@ -126,6 +127,7 @@ Copy with *op = "copy".
 `void Join(LifeState* main, LifeState* delta)`
 
 Copy with *op =  "or".
+
 
 
 `void Join(LifeState* main, LifeState* delta, int dx, int dy)`
@@ -145,7 +147,6 @@ Set or get specific cell value. Works with one-two clock ticks, but might easily
 `void Evolve(LifeState* state, int numIters)`
 
 Evolve pattern numIter generations.
-
 
 
 
