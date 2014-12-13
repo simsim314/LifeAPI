@@ -1,7 +1,6 @@
 //LifeAPI provide comfortable functions (API) to manipulate, iterate, evolve, compare and report Life objects. This is mainly done
 //in order to provide fast (using C) but still comfortable search utility. 
 //Written by Michael Simkin 2014
-
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -295,7 +294,6 @@ int AreEqual(LifeState* pat1, LifeState* pat2)
 	return YES;
 }
 
-
 int AreDisjoint(LifeState* main, LifeState* pat)
 {
 	int min = pat->min;
@@ -309,7 +307,6 @@ int AreDisjoint(LifeState* main, LifeState* pat)
 			
 	return YES;
 }
-
 
 int Contains(LifeState* main, LifeState* spark)
 {
@@ -1212,6 +1209,11 @@ void GetBoundary(LifeState* state, LifeState* boundary)
     
     for(int i = 0; i < N; i++)
         boundary->state[i] &= ~(state->state[i]);
+}
+
+void GetBoundary(LifeState* state, int captureIdx)
+{
+	GetBoundary(state, Captures[captureIdx]);
 }
 
 void GetBoundary(LifeState* boundary)
