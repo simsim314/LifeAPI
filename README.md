@@ -173,8 +173,6 @@ Sets the 0 to 1 and 1 to 0 of LifeState.
 For GlobalState
 ---------
 
----
-
 Almost each function that manipulates LifeState has counterpart (or overload) that manipulates GlobalState
 
 ---
