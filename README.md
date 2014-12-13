@@ -9,7 +9,6 @@ LifeAPI can utilize all 64 bits of 64 bit machine. That means if you compile it 
 
 LifeAPI uses CamelCase convention for its functions, but it's very similar to golly python functionality, naming, and parameters input/overloads. As it was made to replace to some extent search I've made previously in golly, much of golly function naming and other conventions are present. 
 
----
 How to use
 ---
 
@@ -29,7 +28,8 @@ API Documentation
 
 
 General
----
+====
+
 
 LifeAPI works with object called **LifeState** (like cells in golly). Each state is 64x64. The iterations are on torus.  
 Each LifeState is treated as part of the universe, with (0, 0) in the centre. Each LifeStates contains array of N longs, 
@@ -43,7 +43,8 @@ and Life Rule is hard coded into bitwise iteration. LifeStates also contains min
 
 ---
 Global Objects
----
+====
+
 
 First of all there are some static objects in LifeAPI. 
 
@@ -57,10 +58,10 @@ Each LifeAPI application Starts with the line **New();** in main. This is made t
 
 **NOTE:** GlobalState is not made to improve performance, and iterating any other state will works at the same speed, but it allows more simple coding (usually functions that emit the state as first parameter, mainpulate GlobalState). 
 
-
 ---
 Initializing LifeState
----
+====
+
 
 `LifeState* NewState()`
 
@@ -94,10 +95,10 @@ Parse *rle* and place it at (0,0) - i.e. in the middle.
 
 ---
 Manipulating States
----
+====
 
 
-###For any LifeState
+For any LifeState
 ---
 
 `void Transform(LifeState* state, int dx, int dy)`
@@ -169,13 +170,12 @@ Clears all the data inside LifeState.
 Sets the 0 to 1 and 1 to 0 of LifeState.
 
 
----------
 For GlobalState
 ---------
 
-Almost each function that manipulates LifeState has counterpart (or overload) that manipulates GlobalState
+Almost each function that manipulates LifeState has counterpart (or overload) that manipulates GlobalState.
 
----
+----
 
 `int PutState(char* rle)`
 
@@ -224,7 +224,7 @@ Clears GlobalState (on the first call in main, initializes all statics)
 Getting Information and reporting States
 ====
 
------
+
 For any LifeState
 -----
 
@@ -266,7 +266,6 @@ Print the rle of LifeState into console.
 Print the pattern into the console
 
 
------
 For GlobalState
 -----
 
@@ -280,11 +279,12 @@ For GlobalState
 
 `int ContainsInverse(LifeState* inverseSpark)`
 
+
 ---
 Iterators 
 ==============
 
----
+
 General
 ---
 
@@ -296,7 +296,7 @@ Doing it for each place in this square. LifeIterator holds array of LifeStates, 
 
 ===
 
---
+
 Initialization
 --
 
@@ -411,13 +411,13 @@ NOTE: if you use Validate, make sure the components are placed at same relative 
 Search for target
 ======================
 
----
+
 General
 ---
 
 LifeTargets are made to simplify the search of specific target inside any LifeState. LifeTarget is struct that contains target, and negative of it (the expected on and off cells). While the negative, is with "off" cells on. 
 
----
+
 Usage
 ---
 
