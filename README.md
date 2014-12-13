@@ -441,9 +441,26 @@ Check if GlobalState contains some target. Returns YES if it is and NO if not.
 
 `void FreeTarget(LifeTarget* iter)`
 
-Free memory of targer with
+Free memory of LifeTarget. 
 
 ====
+
+
+`void GetBoundary(LifeState* state, LifeState* boundary)`
+
+To simplity the boundry off cells definition, you can use this funciotn. It gets the boundary of the input state and places it in boundary LifeState. 
+
+`void GetBoundary(LifeState* state, int captureIdx)`
+
+Uses *Captures* array, to place the boundary result (in captureIdx index). 
+
+`void GetBoundary(LifeState* boundary)`
+
+Place the Global state boundary into *boundary* object. 
+
+`void GetBoundary(int captureIdx)`
+
+Place the Global state boundary into *Captures* array (at index captureIdx)
 
 ---
 ==============================
