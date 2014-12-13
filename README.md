@@ -61,9 +61,9 @@ Each LifeAPI application Starts with the line **New();** in main. This is made t
 Initializing LifeState
 ---
 
-**LifeState* NewState()**
+`LifeState* NewState()`
 
-**`LifeState* NewState(char* rle)`**
+`**LifeState* NewState(char* rle)**`
 
 **`LifeState* NewState(char* rle, int dx, int dy)`**
 
