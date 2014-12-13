@@ -1,15 +1,16 @@
 #include "LifeAPI.h"
 
-int Assert(int counter, int expected, char* testName)
+int Assert(int counter, int expected, const char* testName)
 {
 	if(counter != expected)
 	{
-		printf("\n %s Failed", testName);
+		printf("\n\n %s Failed :(\n", testName);
 		return FAIL;
 	}
 	else
 	{
-		printf("\n %s Succeeded", testName);
+		printf("\n\n %s Succeeded!!\n", testName);
+		
 		return SUCCESS;
 	}
 }
@@ -18,6 +19,8 @@ int Assert(int counter, int expected, char* testName)
 int Test1()
 {
 	int counter = 0; 
+	
+	printf("\n Tests Life iteration");
 	
 	New();
 	
@@ -60,7 +63,7 @@ int Test1()
 				counter++;
 		}
 	}
-	while(Next(blckiter1, glditer, "none") == SUCCESS);
+	while(Next(blckiter1, glditer, NO) == SUCCESS);
 	
 	return Assert(counter, 4, "Test1");
 }
@@ -68,6 +71,9 @@ int Test1()
 int Test2()
 {
 	int counter = 0; 
+	
+	printf("\n Tests Life iteration");
+	
 	
 	New();
 	
@@ -118,6 +124,8 @@ int Test2()
 
 int Test3()
 {
+	printf("\n Test advanced target matching");
+	
 	int counter = 0; 
 	
 	New();
@@ -143,16 +151,31 @@ int Test3()
 		PutState(iter1);
 		PutState(iter2);
 		
-		//120 should be enough
-		Run(120);
+		//60 should be enough
+		Run(60);
 		
 		//ContainsTarget checks both "on" and "off" cells
 		if(ContainsTarget(fulltarget) == YES)
 			counter++;
 			
-	}while(Next(iter1, iter2, "none") == SUCCESS);
+	}while(Next(iter1, iter2, NO) == SUCCESS);
 	
 	return Assert(counter, 2, "Test3");
+	
+}
+
+int Test4()
+{
+	printf("\n Tests Boundary");
+	
+	New();
+	
+	LifeState* pat =  NewState("2o$2o2$2o$2o!", -20, -20);
+	
+	PutState(pat);
+	GetBoundary(1);
+	
+	return Assert(GetPop(1), 20, "Test4");
 	
 }
 
@@ -166,6 +189,10 @@ int RunTests()
 	if(Test2() == FAIL)
 		result = FAIL;
 		
+	if(Test4() == FAIL)
+		result = FAIL;
+		
+	//Slow but basic test, will run at the end
 	if(Test3() == FAIL)
 		result = FAIL;
 	
@@ -180,5 +207,5 @@ int main()
 	else	
 		printf("\nFinished, some UnitTests failed");
 		
-	getch();
+	getchar();
 }

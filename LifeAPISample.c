@@ -1,9 +1,9 @@
 #include "LifeAPI.h"
-
+#include <time.h>
 void Continue()
 {
 	printf("Press to continue... \n");
-	getch();
+	getchar();
 }
 
 int main()
@@ -94,12 +94,12 @@ int main()
 		
 		}
 	}
-	while(Next(blckiter1, glditer) == SUCCESS);
+	while(Next(blckiter1, glditer, NO) == SUCCESS);
 	
 	t = clock() - t;
 	
 	printf ("Total time: %d miliseconds\n",t);
 	printf("\n\n\n\n\n                 THE END !!!\n\n\n\n\n\n");
-	getch();
+	getchar();
 	return 0;
 }

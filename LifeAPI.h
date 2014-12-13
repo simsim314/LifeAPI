@@ -3,11 +3,8 @@
 //Written by Michael Simkin 2014
 
 #include <stdio.h>
-#include <conio.h>
-#include <time.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 #define N 64
 #define CAPTURE_COUNT 10 
 #define MAX_ITERATIONS 200
@@ -18,11 +15,13 @@
 #define YES 1
 #define NO 0
 
-
 #ifdef __MSC_VER
 #  include <intrin.h>
 #  define __builtin_popcount __popcnt64
 #endif
+
+enum CopyType { COPY, OR, XOR, AND };
+enum EvolveType { EVOLVE, LEAVE };
 
 typedef struct 
 {
@@ -211,25 +210,25 @@ void Print(LifeState *state)
 }
 
 
-void Copy(LifeState* main, LifeState* delta, char* op)
+void Copy(LifeState* main, LifeState* delta, CopyType op)
 {
-	if(strcmp(op,"copy") == 0)
+	if(op == COPY)
 	{	
 		for(int i = 0; i < N; i++)
 			main->state[i] = delta->state[i];
 	}
-	if(strcmp(op,"or") == 0)
+	if(op == OR)
 	{	
 		for(int i = 0; i < N; i++)
 			main->state[i] |= delta->state[i];
 	}
-	if(strcmp(op,"and") == 0)
+	if(op == AND)
 	{	
 		for(int i = 0; i < N; i++)
 			main->state[i] &= delta->state[i];
 		
 	}
-	if(strcmp(op,"xor") == 0)
+	if(op == XOR)
 	{	
 		for(int i = 0; i < N; i++)
 			main->state[i] ^= delta->state[i];
@@ -240,7 +239,7 @@ void Copy(LifeState* main, LifeState* delta, char* op)
 
 void Copy(LifeState* main, LifeState* delta)
 {
-	Copy(main, delta, "copy");
+	Copy(main, delta, COPY);
 }
 
 int GetPop(LifeState* state)
@@ -261,6 +260,11 @@ int GetPop(LifeState* state)
 int GetPop()
 {
 	return GetPop(GlobalState);
+}
+
+int GetPop(int captureIdx)
+{
+	return GetPop(Captures[captureIdx]);
 }
 
 void Inverse(LifeState* state)
@@ -292,17 +296,17 @@ int AreEqual(LifeState* pat1, LifeState* pat2)
 }
 
 
-int ContainsInverse(LifeState* main, LifeState* inverseSpark)
+int AreDisjoint(LifeState* main, LifeState* pat)
 {
-	int min = inverseSpark->min;
-	int max = inverseSpark->max;
+	int min = pat->min;
+	int max = pat->max;
+	uint64_t * patState = pat->state;
 	uint64_t * mainState = main->state;
-	uint64_t * inverseState = inverseSpark->state;
 	
 	for(int i = min; i <= max; i++)
-		if(((~mainState[i]) & inverseState[i]) != inverseState[i])
+		if(((~mainState[i]) & patState[i]) != patState[i])
 			return NO;
-	
+			
 	return YES;
 }
 
@@ -317,19 +321,20 @@ int Contains(LifeState* main, LifeState* spark)
 	for(int i = min; i <= max; i++)
 		if((mainState[i] & sparkState[i]) != (sparkState[i]))
 			return NO;
-	
+			
 	return YES;
 }
 
-int Contains(LifeState* spark)
+int AllOn(LifeState* spark)
 {
 	return Contains(GlobalState, spark);
 }
 
-int ContainsInverse(LifeState* inverseSpark)
+int AllOff(LifeState* spark)
 {
-	return ContainsInverse(GlobalState, inverseSpark);
+	return AreDisjoint(GlobalState, spark);
 }
+
 LifeState* NewState()
 {
 	LifeState* result = (LifeState*)(malloc(sizeof(LifeState)));
@@ -508,7 +513,7 @@ void Transform(LifeState* state, int dx, int dy)
 	Move(state, dx, dy);
 }
 
-int Parse(LifeState* lifeState, char* rle, int dx, int dy)
+int Parse(LifeState* lifeState, const char* rle, int dx, int dy)
 {
 	char ch;
 	int cnt, i, j; 
@@ -582,12 +587,12 @@ int Parse(LifeState* lifeState, char* rle, int dx, int dy)
 	return SUCCESS;
 }
 
-int Parse(LifeState* lifeState, char* rle)
+int Parse(LifeState* lifeState, const char* rle)
 {
 	return Parse(lifeState, rle,  0, 0);
 }
 
-int Parse(LifeState* lifeState, char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
+int Parse(LifeState* lifeState, const char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
 {
 	int result = Parse(lifeState, rle);
 	
@@ -598,7 +603,7 @@ int Parse(LifeState* lifeState, char* rle, int dx, int dy, int dxx, int dxy, int
 }
 
 
-LifeState* NewState(char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
+LifeState* NewState(const char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
 {
 	LifeState* result = NewState();
 	Parse(result, rle);
@@ -607,7 +612,7 @@ LifeState* NewState(char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dy
 	return result;
 }
 
-LifeState* NewState(char* rle, int dx, int dy)
+LifeState* NewState(const char* rle, int dx, int dy)
 {
 	LifeState* result = NewState();
 	Parse(result, rle, dx, dy);
@@ -615,7 +620,7 @@ LifeState* NewState(char* rle, int dx, int dy)
 	return result;
 }
 
-LifeState* NewState(char* rle)
+LifeState* NewState(const char* rle)
 {
 	return NewState(rle, 0, 0);
 }
@@ -719,9 +724,19 @@ void Print()
 	Print(GlobalState);
 }
 
+void Print(int idx)
+{
+	Print(Captures[idx]);
+}
+
 void PrintRLE()
 {
 	PrintRLE(GlobalState);
+}
+
+void PrintRLE(int idx)
+{
+	PrintRLE(Captures[idx]);
 }
 
 void Evolve(LifeState* state, int numIters)
@@ -767,7 +782,7 @@ void Run(int numIter)
 
 void Join(LifeState* main, LifeState* delta)
 {	
-	Copy(main, delta , "or");
+	Copy(main, delta , OR);
 }
 
 void Join(LifeState* main, LifeState* delta, int dx, int dy)
@@ -806,12 +821,12 @@ void PutState(LifeState* state, int dx, int dy, int dxx, int dxy, int dyx, int d
 	PutState(Temp);
 }
 
-void PutState(LifeState* state, char* op)
+void PutState(LifeState* state, CopyType op)
 {
 	Copy(GlobalState, state, op);
 }
 
-int PutState(char* rle)
+int PutState(const char* rle)
 {
 	ClearData(Temp);
 	int result = Parse(Temp, rle);
@@ -822,7 +837,7 @@ int PutState(char* rle)
 	return result;
 }
 
-int PutState(char* rle, int x, int y)
+int PutState(const char* rle, int x, int y)
 {
 	ClearData(Temp);
 	int result = Parse(Temp, rle, x, y);
@@ -833,7 +848,7 @@ int PutState(char* rle, int x, int y)
 	return result;
 }
 
-int PutState(char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
+int PutState(const char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
 {
 	ClearData(Temp);
 	int result = Parse(Temp, rle);
@@ -864,7 +879,7 @@ typedef struct
 } LifeIterator;
 
 
-LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h, int s, char* op)
+LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h, int s, EvolveType op)
 {
 	LifeIterator* result = (LifeIterator*)(malloc(sizeof(LifeIterator)));
 
@@ -889,7 +904,7 @@ LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h, int s, c
 		result->States[i] = NewState();		
 		Copy(result->States[i], Temp);
 		
-		if(strcmp("evolve", op) == 0)
+		if(op == EVOLVE)
 			Evolve(Temp, 1);		
 	}
 	
@@ -899,7 +914,7 @@ LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h, int s, c
 
 LifeIterator* NewIterator(LifeState* states[], int x, int y, int w, int h, int s)
 {
-	LifeIterator* result = NewIterator(states[0], x, y, w, h, s, "leave");
+	LifeIterator* result = NewIterator(states[0], x, y, w, h, s, LEAVE);
 	
 	for(int i = 0; i < s; i++)
 	{
@@ -912,12 +927,12 @@ LifeIterator* NewIterator(LifeState* states[], int x, int y, int w, int h, int s
 
 LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h, int s)
 {
-	return NewIterator(state, x, y, w, h, s, "evolve");
+	return NewIterator(state, x, y, w, h, s, EVOLVE);
 }
 
 LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h)
 {
-	return NewIterator(state, x, y, w, h, 1, "leave");
+	return NewIterator(state, x, y, w, h, 1, LEAVE);
 }
 
 LifeIterator* NewIterator(int x, int y, int w, int h)
@@ -930,7 +945,7 @@ void Print(LifeIterator* iter)
 {
 	printf("\n(%d, %d, %d)", iter->curx, iter->cury, iter->curs);
 }
-void Print(LifeIterator* iter, char* name)
+void Print(LifeIterator* iter, const char* name)
 {
 	printf("\nSetCurrent(%s, %d, %d, %d);", name, iter->curx, iter->cury, iter->curs);
 }
@@ -966,15 +981,13 @@ int Next(LifeIterator* iter)
 	return FAIL;
 }
 
-
-
-int Next(LifeIterator *iter1[], int numIters, char* op)
+int Next(LifeIterator *iter1[], int numIters, int toPrint)
 {
 	for(int i = 0; i < numIters; i++)
 	{
 		if(i == numIters - 1)
 		{
-			if(strcmp(op, "print") == 0)
+			if(toPrint == YES)
 				Print(iter1[i]);
 		}
 		
@@ -985,63 +998,63 @@ int Next(LifeIterator *iter1[], int numIters, char* op)
 	return FAIL;
 }
 
-int Next(LifeIterator *iter1, LifeIterator *iter2, char* op)
+int Next(LifeIterator *iter1, LifeIterator *iter2, int toPrint)
 {
 	LifeIterator *iters[] = {iter1, iter2};
-    return Next(iters, 2, op);
+    return Next(iters, 2, toPrint);
 }
 
 int Next(LifeIterator *iter1, LifeIterator *iter2)
 {
-	return Next(iter1, iter2, "print");
+	return Next(iter1, iter2, YES);
 }
 
-int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, char* op)
+int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, int toPrint)
 {
 	LifeIterator *iters[] = {iter1, iter2, iter3};
-    return Next(iters, 3, op);
+    return Next(iters, 3, toPrint);
 }
 
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3)
 {
-	return Next(iter1, iter2, iter3, "print");
+	return Next(iter1, iter2, iter3, YES);
 }
 
-int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, char* op)
+int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, int toPrint)
 {
 	LifeIterator *iters[] = {iter1, iter2, iter3, iter4};
-    return Next(iters, 4, op);
+    return Next(iters, 4, toPrint);
 }
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4)
 {
-	return Next(iter1, iter2, iter3, iter4, "print");
+	return Next(iter1, iter2, iter3, iter4, YES);
 }
 
-int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, LifeIterator *iter5, char* op)
+int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, LifeIterator *iter5, int toPrint)
 {
 	LifeIterator *iters[] = {iter1, iter2, iter3, iter4, iter5};
-    return Next(iters, 5, op);
+    return Next(iters, 5, toPrint);
 }
 
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, LifeIterator *iter5)
 {
-	return Next(iter1, iter2, iter3, iter4, iter5, "print");
+	return Next(iter1, iter2, iter3, iter4, iter5, YES);
 }
 
-int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, LifeIterator *iter5, LifeIterator *iter6, char* op)
+int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, LifeIterator *iter5, LifeIterator *iter6, int toPrint)
 {
 	LifeIterator *iters[] = {iter1, iter2, iter3, iter4, iter5, iter6};
-    return Next(iters, 6, op);
+    return Next(iters, 6, toPrint);
 }
 
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, LifeIterator *iter5, LifeIterator *iter6)
 {
-	return Next(iter1, iter2, iter3, iter4, iter5, iter6, "print");
+	return Next(iter1, iter2, iter3, iter4, iter5, iter6, YES);
 }
 
 int Next(LifeIterator *iter1[], int numIters)
 {
-	return Next(iter1, numIters, "print");
+	return Next(iter1, numIters, YES);
 }
 
 void FreeIterator(LifeIterator* iter)
@@ -1141,30 +1154,30 @@ int Validate(LifeIterator *iter1, LifeIterator *iter2)
 
 typedef struct 
 {
-	LifeState* target;
-	LifeState* inverse;
+	LifeState* wanted;
+	LifeState* unwanted;
 	
 } LifeTarget;
 
-LifeTarget* NewTarget(LifeState* target, LifeState* inverse)
+LifeTarget* NewTarget(LifeState* wanted, LifeState* unwanted)
 {
 	LifeTarget* result = (LifeTarget*)(malloc(sizeof(LifeTarget)));
 	
-	result->target = NewState();
-	result->inverse = NewState();
+	result->wanted = NewState();
+	result->unwanted = NewState();
 
-	Copy(result->target, target);	
-	Copy(result->inverse, inverse);
+	Copy(result->wanted, wanted);	
+	Copy(result->unwanted, unwanted);
 	
-	RecalculateMinMax(result->target);
-	RecalculateMinMax(result->inverse);
+	RecalculateMinMax(result->wanted);
+	RecalculateMinMax(result->unwanted);
 	
 	return result;
 }
 
 int ContainsTarget(LifeState* state, LifeTarget* target)
 {
-	if(Contains(state, target->target) == YES && ContainsInverse(state, target->inverse) == YES)
+	if(Contains(state, target->wanted) == YES && AreDisjoint(state, target->unwanted) == YES)
 		return YES;
 	else
 		return NO;
@@ -1177,8 +1190,36 @@ int ContainsTarget(LifeTarget* target)
 
 void FreeTarget(LifeTarget* iter)
 {
-	free(iter -> inverse);
-	free(iter -> target);
+	free(iter -> wanted);
+	free(iter -> unwanted);
 	
 	free(iter);
+}
+
+void GetBoundary(LifeState* state, LifeState* boundary)
+{
+    for(int i = 0; i < N; i++) {
+        uint64_t col = state->state[i];
+        Temp->state[i] = col | CirculateLeft(col) | CirculateRight(col);
+    }
+
+    boundary->state[0] = Temp->state[N-1] | Temp->state[0] | Temp->state[1];
+    
+    for(int i = 1; i < N-1; i++)
+        boundary->state[i] = Temp->state[i-1] | Temp->state[i] | Temp->state[i+1];
+
+    boundary->state[N-1] = Temp->state[N-2] | Temp->state[N-1] | Temp->state[0];
+    
+    for(int i = 0; i < N; i++)
+        boundary->state[i] &= ~(state->state[i]);
+}
+
+void GetBoundary(LifeState* boundary)
+{
+	GetBoundary(GlobalState, boundary);
+}
+
+void GetBoundary(int captureIdx)
+{
+	GetBoundary(GlobalState, Captures[captureIdx]);
 }

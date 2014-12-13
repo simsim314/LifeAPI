@@ -4,7 +4,7 @@ void Continue()
 {
 
 	printf("Press to continue... \n");
-	getch();
+	getchar();
 }
 int main()
 {

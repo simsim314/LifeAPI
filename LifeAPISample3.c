@@ -4,7 +4,7 @@ void Continue()
 {
 
 	printf("Press to continue... \n");
-	getch();
+	getchar();
 }
 
 int main()
@@ -99,8 +99,8 @@ int main()
 			Continue();
 			printf("\Searching...\n\n");
 		}
-	}while(Next(iter1, iter2) == SUCCESS);
+	}while(Next(iter1, iter2, NO) == SUCCESS);
 	
 	printf("\nFinished");
-	getch();
+	getchar();
 }
