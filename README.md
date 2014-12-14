@@ -448,7 +448,7 @@ Free memory of LifeTarget.
 
 `void GetBoundary(LifeState* state, LifeState* boundary)`
 
-To simplity the boundry off cells definition, you can use this funciotn. It gets the boundary of the input state and places it in boundary LifeState. 
+To simplity the boundry off cells definition, you can use this funciotn. It gets the boundary of the input *state* and places it in *boundary* LifeState. 
 
 `void GetBoundary(LifeState* state, int captureIdx)`
 
