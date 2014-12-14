@@ -1,6 +1,8 @@
 //LifeAPI provide comfortable functions (API) to manipulate, iterate, evolve, compare and report Life objects. This is mainly done
 //in order to provide fast (using C) but still comfortable search utility. 
+//Contributor Chris Cain. 
 //Written by Michael Simkin 2014
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -34,7 +36,7 @@ inline uint64_t CirculateLeft(uint64_t x);
 inline uint64_t CirculateRight(uint64_t x);
 static LifeState* GlobalState;
 static LifeState* Captures[CAPTURE_COUNT];
-static LifeState* Temp;
+static LifeState* Temp, *Temp1, *Temp2;
 
 
 inline uint64_t CirculateLeft(uint64_t x)
@@ -292,6 +294,16 @@ int AreEqual(LifeState* pat1, LifeState* pat2)
 			return NO;
 			
 	return YES;
+}
+
+int AreEqual(LifeState* pat1)
+{
+	return AreEqual(GlobalState, pat1);
+}
+
+int AreEqual(int idx)
+{
+	return AreEqual(GlobalState, Captures[idx]);
 }
 
 int AreDisjoint(LifeState* main, LifeState* pat)
@@ -749,6 +761,8 @@ void New()
 	{
 		GlobalState = NewState();
 		Temp = NewState();
+		Temp1 = NewState();
+		Temp2 = NewState();
 		
 		for(int i = 0; i < CAPTURE_COUNT; i++)
 		{
@@ -799,6 +813,7 @@ void Join(LifeState* main, LifeState* delta, int dx, int dy)
 }
 
 
+
 void PutState(LifeState* state)
 {
 	Join(GlobalState, state);
@@ -807,6 +822,11 @@ void PutState(LifeState* state)
 void PutState(LifeState* state, int dx, int dy)
 {
 	Join(GlobalState, state, dx, dy);
+}
+
+void PutState(int idx)
+{
+	PutState(Captures[idx]);
 }
 
 void PutState(LifeState* state, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
@@ -1149,49 +1169,6 @@ int Validate(LifeIterator *iter1, LifeIterator *iter2)
 	return SUCCESS;
 }
 
-typedef struct 
-{
-	LifeState* wanted;
-	LifeState* unwanted;
-	
-} LifeTarget;
-
-LifeTarget* NewTarget(LifeState* wanted, LifeState* unwanted)
-{
-	LifeTarget* result = (LifeTarget*)(malloc(sizeof(LifeTarget)));
-	
-	result->wanted = NewState();
-	result->unwanted = NewState();
-
-	Copy(result->wanted, wanted);	
-	Copy(result->unwanted, unwanted);
-	
-	RecalculateMinMax(result->wanted);
-	RecalculateMinMax(result->unwanted);
-	
-	return result;
-}
-
-int ContainsTarget(LifeState* state, LifeTarget* target)
-{
-	if(Contains(state, target->wanted) == YES && AreDisjoint(state, target->unwanted) == YES)
-		return YES;
-	else
-		return NO;
-}
-
-int ContainsTarget(LifeTarget* target)
-{
-	return ContainsTarget(GlobalState, target);
-}
-
-void FreeTarget(LifeTarget* iter)
-{
-	free(iter -> wanted);
-	free(iter -> unwanted);
-	
-	free(iter);
-}
 
 void GetBoundary(LifeState* state, LifeState* boundary)
 {
@@ -1224,4 +1201,54 @@ void GetBoundary(LifeState* boundary)
 void GetBoundary(int captureIdx)
 {
 	GetBoundary(GlobalState, Captures[captureIdx]);
+}
+
+typedef struct 
+{
+	LifeState* wanted;
+	LifeState* unwanted;
+	
+} LifeTarget;
+
+LifeTarget* NewTarget(LifeState* wanted, LifeState* unwanted)
+{
+	LifeTarget* result = (LifeTarget*)(malloc(sizeof(LifeTarget)));
+	
+	result->wanted = NewState();
+	result->unwanted = NewState();
+
+	Copy(result->wanted, wanted);	
+	Copy(result->unwanted, unwanted);
+	
+	RecalculateMinMax(result->wanted);
+	RecalculateMinMax(result->unwanted);
+	
+	return result;
+}
+
+LifeTarget* NewTarget(LifeState* wanted)
+{
+	GetBoundary(wanted, Temp1);
+	return NewTarget(wanted, Temp1);
+}
+
+int ContainsTarget(LifeState* state, LifeTarget* target)
+{
+	if(Contains(state, target->wanted) == YES && AreDisjoint(state, target->unwanted) == YES)
+		return YES;
+	else
+		return NO;
+}
+
+int ContainsTarget(LifeTarget* target)
+{
+	return ContainsTarget(GlobalState, target);
+}
+
+void FreeTarget(LifeTarget* iter)
+{
+	free(iter -> wanted);
+	free(iter -> unwanted);
+	
+	free(iter);
 }
