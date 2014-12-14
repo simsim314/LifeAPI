@@ -1226,10 +1226,25 @@ LifeTarget* NewTarget(LifeState* wanted, LifeState* unwanted)
 	return result;
 }
 
+
+
 LifeTarget* NewTarget(LifeState* wanted)
 {
 	GetBoundary(wanted, Temp1);
 	return NewTarget(wanted, Temp1);
+}
+
+
+LifeTarget* NewTarget(const char* rle)
+{
+	int result = Parse(Temp2, rle);
+	
+	if(result == SUCCESS)
+	{
+		return NewTarget(Temp2);
+	}
+	
+	return NULL;
 }
 
 int ContainsTarget(LifeState* state, LifeTarget* target)
