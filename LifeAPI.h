@@ -1235,9 +1235,9 @@ LifeTarget* NewTarget(LifeState* wanted)
 }
 
 
-LifeTarget* NewTarget(const char* rle)
+LifeTarget* NewTarget(const char* rle, int x, int y, int dxx, int dxy, int dyx, int dyy)
 {
-	int result = Parse(Temp2, rle);
+	int result = Parse(Temp2, rle, x, y, dxx, dxy, dyx, dyy);
 	
 	if(result == SUCCESS)
 	{
@@ -1245,6 +1245,23 @@ LifeTarget* NewTarget(const char* rle)
 	}
 	
 	return NULL;
+}
+
+LifeTarget* NewTarget(const char* rle, int x, int y)
+{
+	int result = Parse(Temp2, rle, x, y);
+	
+	if(result == SUCCESS)
+	{
+		return NewTarget(Temp2);
+	}
+	
+	return NULL;
+}
+
+LifeTarget* NewTarget(const char* rle)
+{
+	return NewTarget(rle, 0, 0);
 }
 
 int ContainsTarget(LifeState* state, LifeTarget* target)
