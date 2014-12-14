@@ -1169,7 +1169,6 @@ int Validate(LifeIterator *iter1, LifeIterator *iter2)
 	return SUCCESS;
 }
 
-
 void GetBoundary(LifeState* state, LifeState* boundary)
 {
     for(int i = 0; i < N; i++) {
