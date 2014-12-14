@@ -457,7 +457,6 @@ void CirculateUp(uint64_t  *state, int anyk)
 	Reverse(state, k, N - 1);
 }
 
-
 void Move(LifeState* state, int x, int y)
 {
 	int i, j;
@@ -481,6 +480,26 @@ void Move(LifeState* state, int x, int y)
 	state->min = 0;
 	state->max = N - 1;
 }
+
+
+void FlipX(LifeState* state)
+{	
+	Reverse(state->state, 0, N - 1);
+	Move(state, 1, 0);
+}
+
+
+void FlipX()
+{
+	FlipX(GlobalState);
+}
+
+void FlipX(int idx)
+{
+	FlipX(Captures[idx]);
+	
+}
+
 
 
 void Transform(LifeState* state, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
@@ -1263,7 +1282,7 @@ LifeTarget* NewTarget(const char* rle)
 	return NewTarget(rle, 0, 0);
 }
 
-int ContainsTarget(LifeState* state, LifeTarget* target)
+int Contains(LifeState* state, LifeTarget* target)
 {
 	if(Contains(state, target->wanted) == YES && AreDisjoint(state, target->unwanted) == YES)
 		return YES;
@@ -1271,9 +1290,9 @@ int ContainsTarget(LifeState* state, LifeTarget* target)
 		return NO;
 }
 
-int ContainsTarget(LifeTarget* target)
+int Contains(LifeTarget* target)
 {
-	return ContainsTarget(GlobalState, target);
+	return Contains(GlobalState, target);
 }
 
 void FreeTarget(LifeTarget* iter)
@@ -1282,4 +1301,53 @@ void FreeTarget(LifeTarget* iter)
 	free(iter -> unwanted);
 	
 	free(iter);
+}
+
+
+typedef struct 
+{
+	LifeState** results;
+	int size;
+	int alocated;
+	
+} ResultManager;
+
+ResultManager* NewResults()
+{
+	ResultManager* result = (ResultManager*)(malloc(sizeof(ResultManager*)));
+	
+	result->results = (LifeState**)(malloc(10 * sizeof(LifeState*)));
+	
+	for(int i = 0; i < 10; i++)
+	{
+		(result->results)[i] = NewState();
+	}
+	
+	result->alocated = 10;
+	result->size = 0;
+	
+	return result;
+}
+
+void Add(ResultManager* manager, LifeState* state)
+{
+	if(manager->size == manager->alocated)
+	{
+		manager->results = (LifeState**)(realloc(manager->results, manager->alocated * 2 * sizeof(LifeState*)));
+		manager->alocated *= 2;
+		
+		for(int i = manager->size; i < 2 * (manager->size); i++)
+		{
+			(manager->results)[i] = NewState();
+		}
+	}
+	
+	Copy((manager->results)[manager->size], state);
+	manager->size++;
+}
+ 
+ 
+void Add(ResultManager* manager)
+{
+	Add(manager, GlobalState);
 }
