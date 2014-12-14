@@ -76,8 +76,8 @@ int main()
 		//100 should be enough
 		Run(100);
 		
-		//ContainsTarget checks both "on" and "off" cells
-		if(ContainsTarget(fulltarget) == YES)
+		//Contains checks both "on" and "off" cells
+		if(Contains(fulltarget) == YES)
 		{
 			printf("\nFound!\n\n");
 			

@@ -1,4 +1,5 @@
 #include "LifeAPI.h"
+#include <string.h>
 
 int Assert(int counter, int expected, const char* testName)
 {
@@ -155,7 +156,7 @@ int Test3()
 		Run(60);
 		
 		//ContainsTarget checks both "on" and "off" cells
-		if(ContainsTarget(fulltarget) == YES)
+		if(Contains(fulltarget) == YES)
 			counter++;
 			
 	}while(Next(iter1, iter2, NO) == SUCCESS);
@@ -179,6 +180,18 @@ int Test4()
 	
 }
 
+int Test5()
+{
+	printf("\n RLE Parsing");
+	
+	New();
+	
+	LifeState* pat =  NewState("2o$2o2$2o$2o!", -32, -32);
+
+	return Assert(strcmp(GetRLE(pat), "2o$2o2$2o$2o"), 0, "Test5");
+	
+}
+
 int RunTests()
 {
 	int result = SUCCESS;
@@ -190,6 +203,9 @@ int RunTests()
 		result = FAIL;
 		
 	if(Test4() == FAIL)
+		result = FAIL;
+	
+	if(Test5() == FAIL)
 		result = FAIL;
 		
 	//Slow but basic test, will run at the end
@@ -203,9 +219,9 @@ int main()
 {
 
 	if(RunTests() == SUCCESS)
-		printf("\nFinished all UnitTests succesfully");
+		printf("\n\n ==========Finished all UnitTests succesfully!! Horray!! ===========");
 	else	
-		printf("\nFinished, some UnitTests failed");
+		printf("\n\n ==========Finished, some UnitTests failed :( Please fix them ======");
 		
 	getchar();
 }

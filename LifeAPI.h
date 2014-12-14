@@ -100,7 +100,6 @@ void SetCell(int x, int y, int val)
 	SetCell(GlobalState, x, y, val);
 }
 
-
 void ExpandMinMax(int* min, int* max)
 {
 	*min = *min - 2;
@@ -112,9 +111,7 @@ void ExpandMinMax(int* min, int* max)
 		(*max) = N - 1;
 		
 	}
-	
 }
-
 
 void RefitMinMax(LifeState* state)
 {
@@ -171,7 +168,6 @@ void RecalculateMinMax(LifeState* state)
 	ExpandMinMax(&(state-> min), &(state-> max));	
 }
 
-
 void Print(LifeState *state)
 {
 	int i, j;
@@ -209,7 +205,6 @@ void Print(LifeState *state)
 	printf("\n\n\n\n\n\n");
 	
 }
-
 
 void Copy(LifeState* main, LifeState* delta, CopyType op)
 {
@@ -653,19 +648,28 @@ LifeState* NewState(const char* rle)
 	return NewState(rle, 0, 0);
 }
 
+char* Join(char* first, char* second)
+{
+	char * s = (char *)malloc(snprintf(NULL, 0, "%s%s", first, second) + 1);
+	sprintf(s, "%s%s", first, second);
+	return s;
+}
 
-void PrintRLE(LifeState  * lifeState)
+char* GetRLE(LifeState  * lifeState)
 {
 	uint64_t * state = lifeState->state;
+	char* result = ""; 
 	
-	printf("x = 0, y = 0, rule = B3/S23\n");
+	
 	int i, j;
 	
 	int currowVal,currowCount, numempty, isempty; 
 	
 	numempty = 0;
 	isempty = 1;
+	char str[15];
 	
+
 	for(j = 0; j < N; j++)
 	{
 		currowCount = 1;
@@ -680,9 +684,14 @@ void PrintRLE(LifeState  * lifeState)
 				if(numempty > 0)
 				{
 					if(numempty > 1)
-						printf ("%d$",numempty);
+					{
+						sprintf(str, "%d$", numempty);
+						result = Join(result, str);
+					}
 					else
-						printf ("$");
+					{
+						result = Join(result, "$");
+					}
 						
 					numempty = 0;
 				}
@@ -695,9 +704,12 @@ void PrintRLE(LifeState  * lifeState)
 				if(numempty > 0)
 				{
 					if(numempty > 1)
-						printf ("%d$",numempty);
+					{
+						sprintf(str, "%d$", numempty);
+						result = Join(result, str);
+					}
 					else
-						printf ("$");
+						result = Join(result, "$");
 						
 					numempty = 0;
 				}
@@ -705,16 +717,22 @@ void PrintRLE(LifeState  * lifeState)
 				if(currowVal == 0)
 				{
 					if(currowCount == 1)
-						printf ("b");
+						result = Join(result, "b");
 					else
-						printf ("%db",currowCount);
+					{
+						sprintf(str, "%db", currowCount);
+						result = Join(result, str);
+					}
 				}
 				else
 				{
 					if(currowCount == 1)
-						printf ("o");
+						result = Join(result, "o");
 					else
-						printf ("%do",currowCount);
+					{
+						sprintf(str, "%do", currowCount);
+						result = Join(result,str);
+					}
 				}
 				
 				currowCount = 1;
@@ -731,9 +749,12 @@ void PrintRLE(LifeState  * lifeState)
 		if(currowVal == 1)
 		{
 			if(currowCount > 1)
-				printf ("%do$",currowCount);
+			{	
+				sprintf(str, "%do", currowCount);
+				result = Join(result,str);
+			}
 			else
-				printf ("o$");
+				result = Join(result, "o$");
 		}
 		else 
 		{	
@@ -744,6 +765,13 @@ void PrintRLE(LifeState  * lifeState)
 		
 	}
 	
+	return result;
+}
+
+void PrintRLE(LifeState  * lifeState)
+{
+	char * prefix ="x = 0, y = 0, rule = B3/S23\n";
+	printf(Join(prefix, GetRLE(lifeState)));
 	printf ("!\n\n");
 }
 
@@ -1345,9 +1373,13 @@ void Add(ResultManager* manager, LifeState* state)
 	Copy((manager->results)[manager->size], state);
 	manager->size++;
 }
- 
- 
+
 void Add(ResultManager* manager)
 {
 	Add(manager, GlobalState);
+}
+
+void Save(ResultManager* manager, const char* fileName)
+{
+	
 }
