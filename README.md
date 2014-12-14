@@ -421,11 +421,28 @@ LifeTargets are made to simplify the search of specific target inside any LifeSt
 Usage
 ---
 
-LifeTarget* NewTarget(LifeState* target, LifeState* inverse)
+`LifeTarget* NewTarget(LifeState* wanted, LifeState* unwanted)`
 
 NewTarget needs target and inverse. 
 
 **NOTE:** Make sure the inverse and the target are placed relative to the same (0,0) (using rle, it's easy to mess up). 
+
+`LifeTarget* NewTarget(LifeState* wanted)`
+
+Calculates unwanted using GetBoundary.
+
+`LifeTarget* NewTarget(const char* rle)`
+
+Creates a pattern from rle as wanted, and calculates unwanted from it. 
+
+`LifeTarget* NewTarget(const char* rle, int x, int y, int dxx, int dxy, int dyx, int dyy)`
+
+Creates a pattern with transofrmation and then calculates the unwanted from it. 
+
+`LifeTarget* NewTarget(const char* rle, int x, int y)`
+
+The same as above only with movement transformation. 
+
 
 ====
 
