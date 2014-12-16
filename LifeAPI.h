@@ -92,7 +92,7 @@ int GetCell(LifeState* state, int x, int y)
 	return Get((x + 32) % 64, (y + 32) % 64, state->state);
 }
 
-int GetCell(int x, int y, int val)
+int GetCell(int x, int y)
 {
 	return GetCell(GlobalState, x, y);
 }
@@ -648,83 +648,58 @@ LifeState* NewState(const char* rle)
 
 const std::string GetRLE(LifeState *state)
 {
-        std::ostringstream ss;	
+        std::ostringstream ss;
 	
-	int i, j;
-	
-	int val, count, numempty = 0; 
+	int eol_count = 0; 
 
-	for(j = 0; j < N; j++)
+	for(int j = 0; j < N; j++)
 	{
-		count = 1;
-		val = Get(0, j, state->state);
+            int last_val = -1;
+            int run_count = 0;
 			
-		for(i = 1; i < 64; i++)
+            for(int i = 0; i < N; i++)
 		{
-			if(val == 1)
+                    int val = Get(i, j, state->state);
+
+                    // Flush linefeeds if we find a live cell
+                    if(val == 1 && eol_count > 0)
 			{
-				if(numempty > 0)
-				{
-					if(numempty > 1)
-                                            ss << numempty;
-
-                                        ss << "$";
-						
-					numempty = 0;
-				}
+                            if(eol_count > 1)
+                                ss << eol_count;
+                            
+                            ss << "$";
+                            
+                            eol_count = 0;
 			}
-			
-			if(Get(i, j, state->state) != val)
-			{
-				if(numempty > 0)
-				{
-					if(numempty > 1)
-                                            ss << numempty;
 
-                                        ss << "$";
-						
-					numempty = 0;
-				}
-				
-				if(val == 0)
-				{
-					if(count > 1)
-                                            ss << count;
+                    // Flush current run if val changes
+                    if (val == 1 - last_val)
+                        {
+                            if(run_count > 1)
+                                ss << run_count;
 
-                                        ss << "b";
-				}
-				else
-				{
-					if(count > 1)
-                                            ss << count;
+                            ss << (last_val ? "o" : "b");
 
-                                        ss << "o";
-				}
-				
-				count = 1;
-				val = Get(i, j, state->state);
-			
+                            run_count = 0;
 			}
-			else
-			{
-				count++;
-			}
-			
-		}
-		
-		if(val == 1)
-		{
-			if(count > 1)
-                            ss << count;
-                        
-                        ss << "o";
-		}
-		else 
-		{	
-			numempty++;
-		}		
+
+                    run_count++;
+                    last_val = val;
+                }
+
+            // Flush run of live cells at end of line
+            if (last_val == 1)
+                {
+                    if(run_count > 1)
+                        ss << run_count;
+                    
+                    ss << "o";
+                    run_count = 0;
+                }
+
+            eol_count++;
 	}
-
+        
         ss << "!";
 
 	return ss.str();
