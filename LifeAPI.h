@@ -767,6 +767,38 @@ void Evolve(LifeState* after, LifeState* before, int numIters)
         Evolve(after, numIters);
 }
 
+namespace PRNG {
+
+    //Public domain PRNG by Sebastian Vigna 2014, see http://xorshift.di.unimi.it
+
+    uint64_t s[16] = { 0x12345678 }; 
+    int p = 0;
+    
+    uint64_t rand64() { 
+        uint64_t s0 = s[ p ];
+	uint64_t s1 = s[ p = ( p + 1 ) & 15 ];
+	s1 ^= s1 << 31; // a
+	s1 ^= s1 >> 11; // b
+	s0 ^= s0 >> 30; // c
+	return ( s[ p ] = s0 ^ s1 ) * 1181783497276652981LL; 
+    }
+
+}
+
+void RandomState(LifeState* state) {
+
+    for (int i = 0; i < N; i++)
+        state->state[i] = PRNG::rand64();
+
+    RecalculateMinMax(state);
+}
+
+void RandomState() {
+    
+    RandomState(GlobalState);
+
+}
+
 void New()
 {
 	if(GlobalState == NULL)
