@@ -757,9 +757,14 @@ void PrintRLE(int idx)
 
 void Evolve(LifeState* state, int numIters)
 {
-	int i; 
-	for(i = 0; i < numIters; i++)
+	for(int i = 0; i < numIters; i++)
 		IterateState(state);
+}
+
+void Evolve(LifeState* after, LifeState* before, int numIters)
+{
+        Copy(after, before);
+        Evolve(after, numIters);
 }
 
 void New()
