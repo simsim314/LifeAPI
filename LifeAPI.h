@@ -362,7 +362,7 @@ void IterateState(LifeState  *lifstate)
 	uint64_t x0, r0, xU, aU, xB, aB;
 	uint64_t a0,a1,a2,c, b0, b1, b2;
 
-	int i, j, idxU, idxB, minNot0, maxNot0;
+	int i, idxU, idxB;
 	
 	for(i = min; i <= max; i++)
 	{
@@ -419,9 +419,6 @@ void IterateState(LifeState  *lifstate)
 	if(e == N - 2)
 		e = N - 1;
 	
-	int newmin = s;
-	int newmax = e;
-	
 	for(i = s; i <= e; i++)
 	{
 		state[i] = tempState[i];
@@ -454,11 +451,7 @@ void CirculateUp(uint64_t  *state, int anyk)
 
 void Move(LifeState* state, int x, int y)
 {
-	int i, j;
-	
-	uint64_t temp[N];
-	
-	for(i = 0; i < N; i++)
+	for(int i = 0; i < N; i++)
 	{
 		if(y < 0)
 			state->state[i] = CirculateRight(state->state[i], -y);
@@ -1162,9 +1155,7 @@ int Validate(LifeIterator *iter1, LifeIterator *iter2)
 		
 	if(iter1->curx != iter2->curx)
 	{
-		//Those two lines are the same
-		//if((iter1->curx + iter2->curx) % 2 == 0)
-		if((iter1->curx + iter2->curx) & 1 == 0)
+		if((iter1->curx + iter2->curx) % 2 == 0)
 		{
 			if(iter1->curx > iter2->curx)
 				return SUCCESS;
@@ -1182,7 +1173,7 @@ int Validate(LifeIterator *iter1, LifeIterator *iter2)
 	
 	if(iter1->cury != iter2->cury)
 	{
-		if((iter1->cury + iter2->cury) & 1 == 0)
+		if((iter1->cury + iter2->cury) % 2 == 0)
 		{
 			if(iter1->cury > iter2->cury)
 				return SUCCESS;
@@ -1198,7 +1189,7 @@ int Validate(LifeIterator *iter1, LifeIterator *iter2)
 		}
 	}
 	
-	if((iter1->curs + iter2->curs) & 1 == 0)
+	if((iter1->curs + iter2->curs) % 2 == 0)
 	{
 		if(iter1->curs > iter2->curs)
 			return SUCCESS;
