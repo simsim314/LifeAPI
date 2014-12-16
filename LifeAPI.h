@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <sstream>
+
 #define N 64
 #define CAPTURE_COUNT 10 
 #define MAX_ITERATIONS 200
@@ -529,7 +531,7 @@ void Transform(LifeState* state, int dx, int dy)
 	Move(state, dx, dy);
 }
 
-int Parse(LifeState* lifeState, const char* rle, int dx, int dy)
+int Parse(LifeState* state, const char* rle)
 {
 	char ch;
 	int cnt, i, j; 
@@ -539,7 +541,7 @@ int Parse(LifeState* lifeState, const char* rle, int dx, int dy)
 	cnt = 0;
 	
 	for(j = 0; j < N; j++)
-		lifeState->state[j] = 0;
+		state->state[j] = 0;
 	
 	i = 0;
 	
@@ -559,7 +561,7 @@ int Parse(LifeState* lifeState, const char* rle, int dx, int dy)
 				
 			for(j = 0; j < cnt; j++)
 			{
-				SetCell(lifeState, x, y, 1);
+				SetCell(state, x, y, 1);
 				x++;
 			}
 			
@@ -595,25 +597,28 @@ int Parse(LifeState* lifeState, const char* rle, int dx, int dy)
 		i++;
 	}
 	
-	lifeState->min = 0;
-	lifeState->max = N - 1;
-	
-	Move(lifeState, dx, dy);
+	state->min = 0;
+	state->max = N - 1;
 	
 	return SUCCESS;
 }
 
-int Parse(LifeState* lifeState, const char* rle)
+int Parse(LifeState* state, const char* rle, int dx, int dy)
 {
-	return Parse(lifeState, rle,  0, 0);
+	int result = Parse(state, rle);
+
+	if (result == SUCCESS)
+            Move(state, dx, dy);
+
+        return result;
 }
 
-int Parse(LifeState* lifeState, const char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
+int Parse(LifeState* state, const char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
 {
-	int result = Parse(lifeState, rle);
+	int result = Parse(state, rle);
 	
 	if(result == SUCCESS)
-		Transform(lifeState, dx, dy, dxx, dxy, dyx, dyy);
+		Transform(state, dx, dy, dxx, dxy, dyx, dyy);
 		
 	return result;
 }
@@ -641,131 +646,93 @@ LifeState* NewState(const char* rle)
 	return NewState(rle, 0, 0);
 }
 
-char* Join(char* first, char* second)
+const std::string GetRLE(LifeState *state)
 {
-	char * s = (char *)malloc(snprintf(NULL, 0, "%s%s", first, second) + 1);
-	sprintf(s, "%s%s", first, second);
-	return s;
-}
-
-char* GetRLE(LifeState  * lifeState)
-{
-	uint64_t * state = lifeState->state;
-	char* result = ""; 
-	
+        std::ostringstream ss;	
 	
 	int i, j;
 	
-	int currowVal,currowCount, numempty, isempty; 
-	
-	numempty = 0;
-	isempty = 1;
-	char str[15];
-	
+	int val, count, numempty = 0; 
 
 	for(j = 0; j < N; j++)
 	{
-		currowCount = 1;
-		currowVal = Get(0,j, state);
+		count = 1;
+		val = Get(0, j, state->state);
 			
 		for(i = 1; i < 64; i++)
 		{
-			if(currowVal == 1)
+			if(val == 1)
 			{
-				isempty = 0;
-				
 				if(numempty > 0)
 				{
 					if(numempty > 1)
-					{
-						sprintf(str, "%d$", numempty);
-						result = Join(result, str);
-					}
-					else
-					{
-						result = Join(result, "$");
-					}
+                                            ss << numempty;
+
+                                        ss << "$";
 						
 					numempty = 0;
 				}
 			}
 			
-			if(Get(i,j, state) != currowVal)
+			if(Get(i, j, state->state) != val)
 			{
-				isempty = 0;
-				
 				if(numempty > 0)
 				{
 					if(numempty > 1)
-					{
-						sprintf(str, "%d$", numempty);
-						result = Join(result, str);
-					}
-					else
-						result = Join(result, "$");
+                                            ss << numempty;
+
+                                        ss << "$";
 						
 					numempty = 0;
 				}
 				
-				if(currowVal == 0)
+				if(val == 0)
 				{
-					if(currowCount == 1)
-						result = Join(result, "b");
-					else
-					{
-						sprintf(str, "%db", currowCount);
-						result = Join(result, str);
-					}
+					if(count > 1)
+                                            ss << count;
+
+                                        ss << "b";
 				}
 				else
 				{
-					if(currowCount == 1)
-						result = Join(result, "o");
-					else
-					{
-						sprintf(str, "%do", currowCount);
-						result = Join(result,str);
-					}
+					if(count > 1)
+                                            ss << count;
+
+                                        ss << "o";
 				}
 				
-				currowCount = 1;
-				currowVal = Get(i,j, state);
+				count = 1;
+				val = Get(i, j, state->state);
 			
 			}
 			else
 			{
-				currowCount++;
+				count++;
 			}
 			
 		}
 		
-		if(currowVal == 1)
+		if(val == 1)
 		{
-			if(currowCount > 1)
-			{	
-				sprintf(str, "%do", currowCount);
-				result = Join(result,str);
-			}
-			else
-				result = Join(result, "o$");
+			if(count > 1)
+                            ss << count;
+                        
+                        ss << "o";
 		}
 		else 
 		{	
 			numempty++;
-		}
-		
-		isempty = 1;
-		
+		}		
 	}
-	
-	return result;
+
+        ss << "!";
+
+	return ss.str();
 }
 
-void PrintRLE(LifeState  * lifeState)
+void PrintRLE(LifeState *state)
 {
-	char * prefix ="x = 0, y = 0, rule = B3/S23\n";
-	printf(Join(prefix, GetRLE(lifeState)));
-	printf ("!\n\n");
+    printf("x = 0, y = 0, rule = B3/S23\n%s\n\n", GetRLE(state).c_str());
 }
 
 void Print()
