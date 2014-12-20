@@ -24,13 +24,13 @@ int Test1()
 	printf("\n Tests Life iteration");
 	
 	New();
-	
 	LifeState* blck =  NewState("2o$2o!");
 	LifeState* gld =  NewState("2o$obo$o!");
 	
 	LifeIterator *blckiter1= NewIterator(blck, -10, -10, 20, 10);
 	LifeIterator *glditer= NewIterator(gld, -16, 5, 35, 1);
 
+	
 	do
 	{
 		New();
@@ -192,6 +192,8 @@ int Test5()
 	
 }
 
+
+
 int Test6()
 {
 	printf("\n Save-Load Results test");
@@ -213,6 +215,27 @@ int Test6()
 	return (Assert(results->size, 15, "Test6 Part 1") == SUCCESS) && (Assert(AreEqual(results->results[7], loaded->results[7]), YES, "Test6 Part 2") == SUCCESS);
 }
 
+int Test7()
+{
+	printf("\n Locators basic test");
+	
+	LifeState* pat = NewState("3o$o$bo!");
+	LifeState* result = NewState();
+	
+	TargetLocator* locator = NewTargetLocator("3o$o$bo!");
+	
+	New();
+	PutState(pat);
+	PutState(pat, 10, 10);
+	
+	LocateTarget(locator, result);
+	
+	Print(result);
+	
+	getchar();
+	
+}
+
 int RunTests()
 {
 	int result = SUCCESS;
@@ -230,6 +253,9 @@ int RunTests()
 		result = FAIL;
 		
 	if(Test6() == FAIL)
+		result = FAIL;
+	
+	if(Test7() == FAIL)
 		result = FAIL;
 	
 	//Slow but basic test, will run at the end
