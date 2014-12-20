@@ -33,7 +33,7 @@ General
 
 LifeAPI works with object called **LifeState** (like cells in golly). Each state is 64x64. The iterations are on torus.  
 Each LifeState is treated as part of the universe, with (0, 0) in the centre. Each LifeStates contains array of N longs, 
-and Life Rule is hard coded into bitwise iteration. LifeStates also contains min and max - and doesn't iterate on all the space when it's not necessary. 
+and Life Rule is hard coded into bitwise iteration. LifeStates also contain min and max - and don't iterate on all the space when it's not necessary. Automatic emitted glider removal was added, into emittedGldiers property of LifeState, with information about where the gliders were found, like their direction, generation and location. 
  
 **NOTE:** min-max are not optimized to use torus, and patterns that use the torus properties of LifeAPI will work slower.
 
