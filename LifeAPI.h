@@ -1177,7 +1177,7 @@ void FreeIterator(LifeIterator* iter)
 	free(iter);
 }
 
-void PutState(LifeState* state, LifeIterator* iter)
+void Join(LifeState* state, LifeIterator* iter)
 {
 	Join(state, iter->States[iter -> curs], iter->curx, iter->cury);
 }
