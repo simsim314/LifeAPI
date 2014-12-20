@@ -480,5 +480,47 @@ Place the Global state boundary into *boundary* object.
 Place the Global state boundary into *Captures* array (at index captureIdx)
 
 ---
+Locate target
+======================
+
+
+General
+---
+
+Unlike LifeTarget that only confirms the target exists in certain place, the TargetLocator allows finding the location of specific Target. It performs very fast for small targets, which is what is needed for GOL. It uses bitwise operands to eliminate options, and it's probably much faster than FFT. 
+
+Creating a new target is relatively time consuming, so prepare all your targets before the main search loop. 
+
+Usage
+---
+
+`TargetLocator* NewTargetLocator()`
+
+`TargetLocator* NewTargetLocator(const char* rle)`
+
+`TargetLocator* NewTargetLocator(const char* rle, int x, int y)`
+
+To create new TargetLocator use one of these. 
+
+
+`TargetLocator* Target2Locator(LifeTarget* target)`
+
+To convert LifeTarget to  TargetLocator use this. 
+
+---
+
+
+ `LocateTarget(LifeState* state, TargetLocator* targetLocator, LifeState* result)`
+ 
+ To locate the target and place it in result (all places where result is not 0, the targets' (0,0) will be 1). 
+ 
+ `LocateTarget(TargetLocator* targetLocator, LifeState* result)`
+ 
+ To locate the target in GlobalState and place it in result. 
+ 
+
+
+
+---
 ==============================
 Written by Michael Simkin 2014
