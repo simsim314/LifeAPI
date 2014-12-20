@@ -1601,7 +1601,7 @@ void LocateInRange(LifeState* state, Locator* onLocator, Locator* offLocator, Li
 
 void Locate(LifeState* state, Locator* locator, LifeState* result)
 {
-	LocateInRange(state, locator, result, 0, N - 1, NO);
+	LocateInRange(state, locator, result, state->min, state->max, NO);
 }
 
 typedef struct 
@@ -1649,10 +1649,11 @@ void LocateInRange(LifeState* state, TargetLocator* targetLocator, LifeState* re
 
 void LocateTarget(LifeState* state, TargetLocator* targetLocator, LifeState* result)
 {
-	LocateInRange(state, targetLocator, result, 0, N - 1);
+	LocateInRange(state, targetLocator, result, state->min, state->max);
 }
 
 void LocateTarget(TargetLocator* targetLocator, LifeState* result)
 {
 	LocateTarget(GlobalState, targetLocator, result);
 }
+
