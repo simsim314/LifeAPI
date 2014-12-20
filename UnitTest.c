@@ -16,6 +16,22 @@ int Assert(int counter, int expected, const char* testName)
 	}
 }
 
+int Assert(char* counter, char* expected, const char* testName)
+{
+	if(strcmp(counter, expected) != 0)
+	{
+		printf("\n\n %s Failed :(\n", testName);
+		return FAIL;
+	}
+	else
+	{
+		printf("\n\n %s Succeeded!!\n", testName);
+		
+		return SUCCESS;
+	}
+}
+
+
 
 int Test1()
 {
@@ -48,20 +64,12 @@ int Test1()
 		if(pop != GetPop())
 			continue;
 		
-		//Just iterate - the glider will run all over tha place - we're on torus anyway 
-		Run(180);
+		//Just iterate - the glider will run all over the place - we're on torus anyway 
+		Run(200);
 		
-		//potential glider 
-		if(GetPop() == 5)
+		if(GetPop() == 0 && strlen(GlobalState->emittedGliders->value) > 0)
 		{	
-			int min = GlobalState->min;
-			int max = GlobalState->max;
-			
-			//evolve 
-			Run(16);
-			
-			if(GetPop() == 5 && !(min == GlobalState->min && max == GlobalState->max))
-				counter++;
+			counter++;
 		}
 	}
 	while(Next(blckiter1, glditer, NO) == SUCCESS);
@@ -192,8 +200,6 @@ int Test5()
 	
 }
 
-
-
 int Test6()
 {
 	printf("\n Save-Load Results test");
@@ -233,6 +239,23 @@ int Test7()
 	return (Assert(GetCell(result, 0, 0) * GetCell(result, 10, 10), 1, "Test7") == SUCCESS);
 }
 
+int Test8()
+{
+	printf("\n Gliders removal basic");
+	
+	LifeState* pat = NewState("3o$o$bo!");
+	
+	New();
+	PutState(pat);
+	PutState(pat, 15, 6, -1, 0, 0, 1);
+	PutState(pat, 12, 17, -1, 0, 0, -1);
+	PutState(pat, -13, 11, 1, 0, 0, -1);
+	Run(150);
+	
+	return (Assert(GlobalState->emittedGliders->value, "(2,22,62,62)(1,60,74,1)(3,2,74,62)(0,0,126,1)", "Test8") == SUCCESS);
+}
+
+
 int RunTests()
 {
 	int result = SUCCESS;
@@ -253,6 +276,9 @@ int RunTests()
 		result = FAIL;
 	
 	if(Test7() == FAIL)
+		result = FAIL;
+	
+	if(Test8() == FAIL)
 		result = FAIL;
 	
 	//Slow but basic test, will run at the end

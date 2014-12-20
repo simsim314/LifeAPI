@@ -177,7 +177,7 @@ void ExpandMinMax(int* min, int* max)
 	*min = *min - 2;
 	*max = *max + 2;
 	
-	if(*min < 0 || *max >= N)
+	if(*min <= 0 || *max >= N - 1)
 	{
 		(*min) = 0;
 		(*max) = N - 1;
@@ -425,88 +425,6 @@ int AllOff(LifeState* spark)
 }
 
 
-
-void IterateState(LifeState  *lifstate)
-{
-	uint64_t* state = lifstate->state;
-	int min = lifstate->min;
-	int max = lifstate->max;
-	
-	uint64_t tempxor[N];
-	uint64_t tempand[N];
-
-	uint64_t tempState[N];
-
-	uint64_t l, r, temp;
-	uint64_t x0, r0, xU, aU, xB, aB;
-	uint64_t a0,a1,a2,c, b0, b1, b2;
-
-	int i, idxU, idxB;
-	
-	for(i = min; i <= max; i++)
-	{
-		temp = state[i];
-		l = CirculateLeft(temp);
-		r = CirculateRight(temp);
-		tempxor[i] = l ^ r ^ temp;
-		tempand[i] = ((l | r) & temp) | (l & r);
-	}
-
-	for(i = min; i <= max; i++)
-	{
-		if(i == 0)
-			idxU = N - 1;
-		else
-			idxU = i - 1;
-
-		if(i == N - 1)
-			idxB = 0;
-		else
-			idxB = i + 1;
-
-		temp = state[i];
-
-		x0 = tempxor[i];
-		r0 = tempand[i];
-
-		xU = tempxor[idxU];
-		aU = tempand[idxU];
-
-		xB = tempxor[idxB];
-		aB = tempand[idxB];
-
-		a0 = x0^xU;
-		c = (x0&xU);
-		a1 = c^aU^r0;
-		a2 = (aU&r0)|((aU|r0)&c);
-
-		b0 = xB^a0;
-		c = (xB&a0);
-		b1 = c^aB^a1;
-		b2 = (aB&a1)|((aB|a1)&c);
-
-		tempState[i] = (b0&b1&(~b2)&(~a2))|((temp)&(a2^b2)&(~b0)&(~b1));
-		
-	}
-	
-	int s = min + 1;
-	int e =  max - 1;
-	
-	if(s == 1)
-		s = 0;
-	
-	if(e == N - 2)
-		e = N - 1;
-	
-	for(i = s; i <= e; i++)
-	{
-		state[i] = tempState[i];
-	}	
-	
-	RefitMinMax(lifstate);
-	lifstate->gen++;
-}
-
 void Reverse(uint64_t  *state, int idxS, int idxE)
 {
 	for(int i = 0; idxS + i <  idxE - i; i++)
@@ -606,6 +524,41 @@ void Transform(LifeState* state, int dx, int dy)
 {
 	Move(state, dx, dy);
 }
+
+
+void GetBoundary(LifeState* state, LifeState* boundary)
+{
+    for(int i = 0; i < N; i++) {
+        uint64_t col = state->state[i];
+        Temp->state[i] = col | CirculateLeft(col) | CirculateRight(col);
+    }
+
+    boundary->state[0] = Temp->state[N-1] | Temp->state[0] | Temp->state[1];
+    
+    for(int i = 1; i < N-1; i++)
+        boundary->state[i] = Temp->state[i-1] | Temp->state[i] | Temp->state[i+1];
+
+    boundary->state[N-1] = Temp->state[N-2] | Temp->state[N-1] | Temp->state[0];
+    
+    for(int i = 0; i < N; i++)
+        boundary->state[i] &= ~(state->state[i]);
+}
+
+void GetBoundary(LifeState* state, int captureIdx)
+{
+	GetBoundary(state, Captures[captureIdx]);
+}
+
+void GetBoundary(LifeState* boundary)
+{
+	GetBoundary(GlobalState, boundary);
+}
+
+void GetBoundary(int captureIdx)
+{
+	GetBoundary(GlobalState, Captures[captureIdx]);
+}
+
 
 int Parse(LifeState* state, const char* rle, int starti)
 {
@@ -708,6 +661,427 @@ int Parse(LifeState* state, const char* rle, int dx, int dy, int dxx, int dxy, i
 		Transform(state, dx, dy, dxx, dxy, dyx, dyy);
 		
 	return result;
+}
+
+
+
+typedef struct 
+{
+	LifeState* wanted;
+	LifeState* unwanted;
+	
+} LifeTarget;
+
+LifeTarget* NewTarget(LifeState* wanted, LifeState* unwanted)
+{
+	LifeTarget* result = (LifeTarget*)(malloc(sizeof(LifeTarget)));
+	
+	result->wanted = NewState();
+	result->unwanted = NewState();
+
+	Copy(result->wanted, wanted);	
+	Copy(result->unwanted, unwanted);
+	
+	RecalculateMinMax(result->wanted);
+	RecalculateMinMax(result->unwanted);
+	
+	return result;
+}
+
+
+
+LifeTarget* NewTarget(LifeState* wanted)
+{
+	GetBoundary(wanted, Temp1);
+	return NewTarget(wanted, Temp1);
+}
+
+
+LifeTarget* NewTarget(const char* rle, int x, int y, int dxx, int dxy, int dyx, int dyy)
+{
+	int result = Parse(Temp2, rle, x, y, dxx, dxy, dyx, dyy);
+	
+	if(result == SUCCESS)
+	{
+		return NewTarget(Temp2);
+	}
+	
+	return NULL;
+}
+
+LifeTarget* NewTarget(const char* rle, int x, int y)
+{
+	int result = Parse(Temp2, rle, x, y);
+	
+	if(result == SUCCESS)
+	{
+		return NewTarget(Temp2);
+	}
+	
+	return NULL;
+}
+
+LifeTarget* NewTarget(const char* rle)
+{
+	return NewTarget(rle, 0, 0);
+}
+
+
+typedef struct 
+{
+  int* xList;
+  int* yList;
+  int len;
+  int allocated;
+} Locator;
+
+Locator* NewLocator()
+{
+	Locator* result = (Locator*)(malloc(sizeof(Locator)));
+	
+	result->xList = (int*)(malloc(sizeof(int)));
+	result->yList = (int*)(malloc(sizeof(int)));
+	result->len = 0;
+	result->allocated = 1;
+	
+	return result;
+}
+
+Locator* Realloc(Locator* locator)
+{
+	if(locator->allocated <= locator->len)
+	{				
+		locator->allocated *= 2;
+		locator->xList = (int*)(realloc(locator->xList, locator->allocated * sizeof(int)));
+		locator->yList = (int*)(realloc(locator->yList, locator->allocated * sizeof(int)));	
+	}
+}
+
+void Add(Locator* locator, int x, int y)
+{
+	Realloc(locator);
+	
+	locator->xList[locator->len] = x;
+	locator->yList[locator->len] = y;
+	locator->len++;
+}
+
+Locator *State2Locator(LifeState* state)
+{
+	Locator* result = NewLocator();
+	
+	for(int j = 0; j < N; j++)
+	{
+        for(int i = 0; i < N; i++)
+		{
+            int val = Get(i, j, state->state);
+			
+			if(val == 1)
+				Add(result, i, j);
+		}
+	}
+	
+	return result;
+}
+
+void ClearAtX(LifeState* state, Locator* locator, int x, uint64_t val)
+{
+	if(val == 0ULL)
+		return;
+	
+	int len = locator->len;
+	int* xList =  locator->xList;
+	int* yList =  locator->yList;
+
+	for(int i = 0; i < len; i++)
+	{
+		int idx = (x + xList[i] + N) % N;
+		int circulate = (yList[i] + 64) % 64;
+		
+		state->state[idx] &= ~CirculateLeft(val, circulate);
+	}
+}
+
+uint64_t LocateAtX(LifeState* state, Locator* locator, int x, int negate)
+{
+	uint64_t result = ~0ULL;
+	int len = locator->len;
+	int* xList =  locator->xList;
+	int* yList =  locator->yList;
+
+	for(int i = 0; i < len; i++)
+	{
+		int idx = (x + xList[i] + N) % N;
+		int circulate = (yList[i] + 64) % 64;
+		
+		if(negate == NO)
+			result &= CirculateRight(state->state[idx], circulate);
+		else
+			result &= ~CirculateRight(state->state[idx],circulate);
+		
+		if(result == 0ULL)
+			break;
+	}
+
+	
+	return result;
+}
+
+uint64_t LocateAtX(LifeState* state, Locator* onLocator, Locator* offLocator, int x)
+{
+	uint64_t onLocate = LocateAtX(state, onLocator, x, NO);
+	
+	if(onLocate == 0)
+		return 0;
+		
+	return  onLocate & LocateAtX(state, offLocator, x, YES);
+}
+
+void LocateInRange(LifeState* state, Locator* locator, LifeState* result, int minx, int maxx, int negate)
+{
+	for(int i = minx; i<= maxx; i++)
+	{
+		result->state[i] = LocateAtX(state, locator, i, negate);
+	}
+}
+
+void LocateInRange(LifeState* state, Locator* onLocator, Locator* offLocator, LifeState* result, int minx, int maxx)
+{
+	for(int i = minx; i<= maxx; i++)
+	{
+		result->state[i] = LocateAtX(state, onLocator, offLocator, i);
+	}
+}
+
+void Locate(LifeState* state, Locator* locator, LifeState* result)
+{
+	LocateInRange(state, locator, result, state->min, state->max, NO);
+}
+
+
+int Contains(LifeState* state, LifeTarget* target)
+{
+	if(Contains(state, target->wanted) == YES && AreDisjoint(state, target->unwanted) == YES)
+		return YES;
+	else
+		return NO;
+}
+
+int Contains(LifeTarget* target)
+{
+	return Contains(GlobalState, target);
+}
+
+void FreeTarget(LifeTarget* iter)
+{
+	free(iter -> wanted);
+	free(iter -> unwanted);
+	
+	free(iter);
+}
+
+
+typedef struct 
+{
+  Locator* onLocator;
+  Locator* offLocator;
+} TargetLocator;
+
+
+TargetLocator* NewTargetLocator()
+{
+	TargetLocator* result = (TargetLocator*)(malloc(sizeof(TargetLocator)));
+	
+	result->onLocator = NewLocator();
+	result->offLocator = NewLocator();
+	
+	return result;
+}
+
+
+TargetLocator* Target2Locator(LifeTarget* target)
+{
+	TargetLocator* result = (TargetLocator*)(malloc(sizeof(TargetLocator)));
+	result->onLocator = State2Locator(target->wanted);
+	result->offLocator = State2Locator(target->unwanted);
+	
+	return result;
+}
+
+TargetLocator* NewTargetLocator(const char* rle)
+{
+	TargetLocator* result = Target2Locator(NewTarget(rle, -32, -32));
+	return result;
+}
+
+
+TargetLocator* NewTargetLocator(const char* rle, int x, int y)
+{
+	TargetLocator* result = Target2Locator(NewTarget(rle, -32 + x, -32 + y));
+	return result;
+}
+
+
+uint64_t LocateAtX(LifeState* state, TargetLocator* targetLocator, int x)
+{
+	return LocateAtX(state, targetLocator->onLocator, targetLocator->offLocator,  x);
+}
+
+void LocateInRange(LifeState* state, TargetLocator* targetLocator, LifeState* result, int minx, int maxx)
+{
+	return LocateInRange(state, targetLocator->onLocator, targetLocator->offLocator, result, minx, maxx);
+}
+
+void LocateTarget(LifeState* state, TargetLocator* targetLocator, LifeState* result)
+{
+	LocateInRange(state, targetLocator, result, state->min, state->max);
+}
+
+void LocateTarget(TargetLocator* targetLocator, LifeState* result)
+{
+	LocateTarget(GlobalState, targetLocator, result);
+}
+
+static TargetLocator* _glidersTarget[4];
+
+
+int RemoveAtX(LifeState *state, int x, int startGiderIdx)
+{
+	int removed = NO;
+	
+	for(int i = startGiderIdx; i < startGiderIdx + 2; i++)
+	{
+		uint64_t gld = LocateAtX(state, _glidersTarget[i], x);
+		
+		if(gld != 0)
+		{
+			removed = YES;
+			ClearAtX(state, _glidersTarget[i]->onLocator, x, gld);
+			
+			for(int j = 0; j < 64; j++)
+			{
+				if(gld % 2 == 1)
+				{
+					Append(state->emittedGliders, "(");
+					Append(state->emittedGliders, i);
+					Append(state->emittedGliders, ",");
+					Append(state->emittedGliders, j);
+					Append(state->emittedGliders, ",");
+					Append(state->emittedGliders, state->gen);
+					Append(state->emittedGliders, ",");
+					Append(state->emittedGliders, x);
+					Append(state->emittedGliders, ")");
+				}
+				
+				gld = gld >> 1;
+				
+				if(gld == 0)
+					break;
+			}
+		}
+	}
+	
+	return removed;
+}
+
+
+void RemoveGliders(LifeState *state)
+{
+	int removed = NO;
+	int x = 1;
+	
+	if(state->min <= 1)
+		if(RemoveAtX(state, 1, 0) == YES)
+			removed = YES;
+	
+	if(state->max >= N - 2)
+		if(RemoveAtX(state, N - 2, 2) == YES)
+			removed = YES;
+			
+	if(removed == YES)
+		RecalculateMinMax(state);
+}
+
+void IterateState(LifeState  *lifstate)
+{
+	uint64_t* state = lifstate->state;
+	int min = lifstate->min;
+	int max = lifstate->max;
+	
+	uint64_t tempxor[N];
+	uint64_t tempand[N];
+
+	uint64_t tempState[N];
+
+	uint64_t l, r, temp;
+	uint64_t x0, r0, xU, aU, xB, aB;
+	uint64_t a0,a1,a2,c, b0, b1, b2;
+
+	int i, idxU, idxB;
+	
+	for(i = min; i <= max; i++)
+	{
+		temp = state[i];
+		l = CirculateLeft(temp);
+		r = CirculateRight(temp);
+		tempxor[i] = l ^ r ^ temp;
+		tempand[i] = ((l | r) & temp) | (l & r);
+	}
+
+	for(i = min; i <= max; i++)
+	{
+		if(i == 0)
+			idxU = N - 1;
+		else
+			idxU = i - 1;
+
+		if(i == N - 1)
+			idxB = 0;
+		else
+			idxB = i + 1;
+
+		temp = state[i];
+
+		x0 = tempxor[i];
+		r0 = tempand[i];
+
+		xU = tempxor[idxU];
+		aU = tempand[idxU];
+
+		xB = tempxor[idxB];
+		aB = tempand[idxB];
+
+		a0 = x0^xU;
+		c = (x0&xU);
+		a1 = c^aU^r0;
+		a2 = (aU&r0)|((aU|r0)&c);
+
+		b0 = xB^a0;
+		c = (xB&a0);
+		b1 = c^aB^a1;
+		b2 = (aB&a1)|((aB|a1)&c);
+
+		tempState[i] = (b0&b1&(~b2)&(~a2))|((temp)&(a2^b2)&(~b0)&(~b1));
+		
+	}
+	
+	int s = min + 1;
+	int e =  max - 1;
+	
+	if(s == 1)
+		s = 0;
+	
+	if(e == N - 2)
+		e = N - 1;
+	
+	for(i = s; i <= e; i++)
+	{
+		state[i] = tempState[i];
+	}	
+	
+	RefitMinMax(lifstate);
+	lifstate->gen++;
+	
 }
 
 
@@ -819,7 +1193,10 @@ void PrintRLE(int idx)
 void Evolve(LifeState* state, int numIters)
 {
 	for(int i = 0; i < numIters; i++)
+	{
 		IterateState(state);
+		RemoveGliders(state);
+	}
 }
 
 void Evolve(LifeState* after, LifeState* before, int numIters)
@@ -872,11 +1249,19 @@ void New()
 		{
 			Captures[i] =  NewState();
 		}
+		
+		_glidersTarget[0] = NewTargetLocator("2o$obo$o!");
+		_glidersTarget[1] = NewTargetLocator("o$obo$2o!");
+		_glidersTarget[2] = NewTargetLocator("b2o$obo$2bo!", -2, 0);
+		_glidersTarget[3] = NewTargetLocator("2bo$obo$b2o!", -2, 0);
+
 	}
 	else
 	{
 		ClearData(GlobalState);
 	}
+	
+	
 }
 
 void Capture(LifeState* cap, int idx)
@@ -935,11 +1320,10 @@ void PutState(int idx)
 
 void PutState(LifeState* state, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
 {
-	ClearData(Temp);
-	Copy(Temp, state);
-	Transform(Temp, dx, dy, dxx, dxy, dyx, dyy);
-	
-	PutState(Temp);
+	ClearData(Temp1);
+	Copy(Temp1, state);
+	Transform(Temp1, dx, dy, dxx, dxy, dyx, dyy);
+	PutState(Temp1);
 }
 
 void PutState(LifeState* state, CopyType op)
@@ -1271,121 +1655,6 @@ int Validate(LifeIterator *iter1, LifeIterator *iter2)
 	return SUCCESS;
 }
 
-void GetBoundary(LifeState* state, LifeState* boundary)
-{
-    for(int i = 0; i < N; i++) {
-        uint64_t col = state->state[i];
-        Temp->state[i] = col | CirculateLeft(col) | CirculateRight(col);
-    }
-
-    boundary->state[0] = Temp->state[N-1] | Temp->state[0] | Temp->state[1];
-    
-    for(int i = 1; i < N-1; i++)
-        boundary->state[i] = Temp->state[i-1] | Temp->state[i] | Temp->state[i+1];
-
-    boundary->state[N-1] = Temp->state[N-2] | Temp->state[N-1] | Temp->state[0];
-    
-    for(int i = 0; i < N; i++)
-        boundary->state[i] &= ~(state->state[i]);
-}
-
-void GetBoundary(LifeState* state, int captureIdx)
-{
-	GetBoundary(state, Captures[captureIdx]);
-}
-
-void GetBoundary(LifeState* boundary)
-{
-	GetBoundary(GlobalState, boundary);
-}
-
-void GetBoundary(int captureIdx)
-{
-	GetBoundary(GlobalState, Captures[captureIdx]);
-}
-
-typedef struct 
-{
-	LifeState* wanted;
-	LifeState* unwanted;
-	
-} LifeTarget;
-
-LifeTarget* NewTarget(LifeState* wanted, LifeState* unwanted)
-{
-	LifeTarget* result = (LifeTarget*)(malloc(sizeof(LifeTarget)));
-	
-	result->wanted = NewState();
-	result->unwanted = NewState();
-
-	Copy(result->wanted, wanted);	
-	Copy(result->unwanted, unwanted);
-	
-	RecalculateMinMax(result->wanted);
-	RecalculateMinMax(result->unwanted);
-	
-	return result;
-}
-
-
-
-LifeTarget* NewTarget(LifeState* wanted)
-{
-	GetBoundary(wanted, Temp1);
-	return NewTarget(wanted, Temp1);
-}
-
-
-LifeTarget* NewTarget(const char* rle, int x, int y, int dxx, int dxy, int dyx, int dyy)
-{
-	int result = Parse(Temp2, rle, x, y, dxx, dxy, dyx, dyy);
-	
-	if(result == SUCCESS)
-	{
-		return NewTarget(Temp2);
-	}
-	
-	return NULL;
-}
-
-LifeTarget* NewTarget(const char* rle, int x, int y)
-{
-	int result = Parse(Temp2, rle, x, y);
-	
-	if(result == SUCCESS)
-	{
-		return NewTarget(Temp2);
-	}
-	
-	return NULL;
-}
-
-LifeTarget* NewTarget(const char* rle)
-{
-	return NewTarget(rle, 0, 0);
-}
-
-int Contains(LifeState* state, LifeTarget* target)
-{
-	if(Contains(state, target->wanted) == YES && AreDisjoint(state, target->unwanted) == YES)
-		return YES;
-	else
-		return NO;
-}
-
-int Contains(LifeTarget* target)
-{
-	return Contains(GlobalState, target);
-}
-
-void FreeTarget(LifeTarget* iter)
-{
-	free(iter -> wanted);
-	free(iter -> unwanted);
-	
-	free(iter);
-}
-
 typedef struct 
 {
 	LifeState** results;
@@ -1488,172 +1757,5 @@ LifeResults* LoadResults(const char* filePath)
 	}
 	
 	return results;
-}
-
-typedef struct 
-{
-  int* xList;
-  int* yList;
-  int len;
-  int allocated;
-} Locator;
-
-Locator* NewLocator()
-{
-	Locator* result = (Locator*)(malloc(sizeof(Locator)));
-	
-	result->xList = (int*)(malloc(sizeof(int)));
-	result->yList = (int*)(malloc(sizeof(int)));
-	result->len = 0;
-	result->allocated = 1;
-	
-	return result;
-}
-
-Locator* Realloc(Locator* locator)
-{
-	if(locator->allocated <= locator->len)
-	{				
-		locator->allocated *= 2;
-		locator->xList = (int*)(realloc(locator->xList, locator->allocated * sizeof(int)));
-		locator->yList = (int*)(realloc(locator->yList, locator->allocated * sizeof(int)));	
-	}
-}
-
-void Add(Locator* locator, int x, int y)
-{
-	Realloc(locator);
-	
-	locator->xList[locator->len] = x;
-	locator->yList[locator->len] = y;
-	locator->len++;
-}
-
-Locator *State2Locator(LifeState* state)
-{
-	Locator* result = NewLocator();
-	
-	for(int j = 0; j < N; j++)
-	{
-        for(int i = 0; i < N; i++)
-		{
-            int val = Get(i, j, state->state);
-			
-			if(val == 1)
-				Add(result, i, j);
-		}
-	}
-	
-	return result;
-}
-
-uint64_t LocateAtX(LifeState* state, Locator* locator, int x, int negate)
-{
-	uint64_t result = ~0ULL;
-	int len = locator->len;
-	int* xList =  locator->xList;
-	int* yList =  locator->yList;
-
-	for(int i = 0; i < len; i++)
-	{
-		int idx = (x + xList[i] + N) % N;
-		
-		int circulate = yList[i];
-		
-		if(negate == NO)
-			result &= CirculateRight(state->state[idx], circulate);
-		else
-			result &= ~CirculateRight(state->state[idx], circulate);
-		
-		if(result == 0ULL)
-			break;
-	}
-
-	
-	return result;
-}
-
-uint64_t LocateAtX(LifeState* state, Locator* onLocator, Locator* offLocator, LifeState* result, int x)
-{
-	uint64_t onLocate = LocateAtX(state, onLocator, x, NO);
-	
-	if(onLocate == 0)
-		return 0;
-		
-	return  onLocate & LocateAtX(state, offLocator, x, YES);
-}
-
-void LocateInRange(LifeState* state, Locator* locator, LifeState* result, int minx, int maxx, int negate)
-{
-	for(int i = minx; i<= maxx; i++)
-	{
-		result->state[i] = LocateAtX(state, locator, i, negate);
-	}
-}
-
-void LocateInRange(LifeState* state, Locator* onLocator, Locator* offLocator, LifeState* result, int minx, int maxx)
-{
-	for(int i = minx; i<= maxx; i++)
-	{
-		result->state[i] = LocateAtX(state, onLocator, offLocator, result, i);
-	}
-}
-
-void Locate(LifeState* state, Locator* locator, LifeState* result)
-{
-	LocateInRange(state, locator, result, state->min, state->max, NO);
-}
-
-typedef struct 
-{
-  Locator* onLocator;
-  Locator* offLocator;
-} TargetLocator;
-
-
-TargetLocator* NewTargetLocator()
-{
-	TargetLocator* result = (TargetLocator*)(malloc(sizeof(TargetLocator)));
-	
-	result->onLocator = NewLocator();
-	result->offLocator = NewLocator();
-	
-	return result;
-}
-
-
-TargetLocator* Target2Locator(LifeTarget* target)
-{
-	TargetLocator* result = (TargetLocator*)(malloc(sizeof(TargetLocator)));
-	result->onLocator = State2Locator(target->wanted);
-	result->offLocator = State2Locator(target->unwanted);
-	
-	return result;
-}
-
-TargetLocator* NewTargetLocator(const char* rle)
-{
-	TargetLocator* result = Target2Locator(NewTarget(rle, -32, -32));
-	return result;
-}
-
-uint64_t LocateAtX(LifeState* state, TargetLocator* targetLocator, LifeState* result, int x)
-{
-	return LocateAtX(state, targetLocator->onLocator, targetLocator->offLocator, result, x);
-}
-
-void LocateInRange(LifeState* state, TargetLocator* targetLocator, LifeState* result, int minx, int maxx)
-{
-	return LocateInRange(state, targetLocator->onLocator, targetLocator->offLocator, result, minx, maxx);
-}
-
-void LocateTarget(LifeState* state, TargetLocator* targetLocator, LifeState* result)
-{
-	LocateInRange(state, targetLocator, result, state->min, state->max);
-}
-
-void LocateTarget(TargetLocator* targetLocator, LifeState* result)
-{
-	LocateTarget(GlobalState, targetLocator, result);
 }
 
