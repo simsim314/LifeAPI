@@ -38,7 +38,7 @@ LifeString* NewString()
 {
 	LifeString* result = (LifeString*)(malloc(sizeof(LifeString)));
 	
-	result->value = (char*)(malloc(2 * sizeof(char*)));
+	result->value = (char*)(malloc(2 * sizeof(char)));
 	result->value[0] = '\0';
 	result->size = 1;
 	result->allocated = 1;
@@ -1396,7 +1396,7 @@ typedef struct
 
 LifeResults* NewResults()
 {
-	LifeResults* result = (LifeResults*)(malloc(sizeof(LifeResults*)));
+	LifeResults* result = (LifeResults*)(malloc(sizeof(LifeResults)));
 	
 	result->results = (LifeState**)(malloc(10 * sizeof(LifeState*)));
 	
@@ -1499,10 +1499,10 @@ typedef struct
 
 Locator* NewLocator()
 {
-	Locator* result = (Locator*)(malloc(sizeof(Locator*)));
+	Locator* result = (Locator*)(malloc(sizeof(Locator)));
 	
-	result->xList = (int*)(malloc(sizeof(int*)));
-	result->yList = (int*)(malloc(sizeof(int*)));
+	result->xList = (int*)(malloc(sizeof(int)));
+	result->yList = (int*)(malloc(sizeof(int)));
 	result->len = 0;
 	result->allocated = 1;
 	
@@ -1514,8 +1514,8 @@ Locator* Realloc(Locator* locator)
 	if(locator->allocated <= locator->len)
 	{				
 		locator->allocated *= 2;
-		locator->xList = (int*)(realloc(locator->xList, locator->allocated * sizeof(int*)));
-		locator->yList = (int*)(realloc(locator->yList, locator->allocated * sizeof(int*)));	
+		locator->xList = (int*)(realloc(locator->xList, locator->allocated * sizeof(int)));
+		locator->yList = (int*)(realloc(locator->yList, locator->allocated * sizeof(int)));	
 	}
 }
 
@@ -1557,7 +1557,7 @@ uint64_t LocateAtX(LifeState* state, Locator* locator, int x, int negate)
 	{
 		int idx = (x + xList[i] + N) % N;
 		
-		int circulate = N - yList[i];
+		int circulate = yList[i];
 		
 		if(negate == NO)
 			result &= CirculateRight(state->state[idx], circulate);
@@ -1612,7 +1612,7 @@ typedef struct
 
 TargetLocator* NewTargetLocator()
 {
-	TargetLocator* result = (TargetLocator*)(malloc(sizeof(TargetLocator*)));
+	TargetLocator* result = (TargetLocator*)(malloc(sizeof(TargetLocator)));
 	
 	result->onLocator = NewLocator();
 	result->offLocator = NewLocator();
@@ -1623,7 +1623,7 @@ TargetLocator* NewTargetLocator()
 
 TargetLocator* Target2Locator(LifeTarget* target)
 {
-	TargetLocator* result = (TargetLocator*)(malloc(sizeof(TargetLocator*)));
+	TargetLocator* result = (TargetLocator*)(malloc(sizeof(TargetLocator)));
 	result->onLocator = State2Locator(target->wanted);
 	result->offLocator = State2Locator(target->unwanted);
 	

@@ -230,10 +230,7 @@ int Test7()
 	
 	LocateTarget(locator, result);
 	
-	Print(result);
-	
-	getchar();
-	
+	return (Assert(GetCell(result, 0, 0) * GetCell(result, 10, 10), 1, "Test7") == SUCCESS);
 }
 
 int RunTests()
