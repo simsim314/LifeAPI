@@ -192,6 +192,27 @@ int Test5()
 	
 }
 
+int Test6()
+{
+	printf("\n Save-Load Results test");
+	
+	LifeState* pat = NewState("3o$o$bo!");
+	LifeResults* results = NewResults();
+	New();
+	PutState(pat);
+	
+	for(int i = 0; i < 15; i++)
+	{
+		Add(results);
+		Run(1);
+	}
+
+	SaveResults(results, "results.txt");
+	LifeResults*  loaded = LoadResults("results.txt");
+
+	return (Assert(results->size, 15, "Test6 Part 1") == SUCCESS) && (Assert(AreEqual(results->results[7], loaded->results[7]), YES, "Test6 Part 2") == SUCCESS);
+}
+
 int RunTests()
 {
 	int result = SUCCESS;
@@ -208,6 +229,9 @@ int RunTests()
 	if(Test5() == FAIL)
 		result = FAIL;
 		
+	if(Test6() == FAIL)
+		result = FAIL;
+	
 	//Slow but basic test, will run at the end
 	if(Test3() == FAIL)
 		result = FAIL;

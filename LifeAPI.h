@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
+
 #define N 64
 #define CAPTURE_COUNT 10 
 #define MAX_ITERATIONS 200
@@ -536,7 +538,8 @@ void Transform(LifeState* state, int dx, int dy)
 	Move(state, dx, dy);
 }
 
-int Parse(LifeState* lifeState, const char* rle, int dx, int dy)
+
+int Parse(LifeState* lifeState, const char* rle, int starti)
 {
 	char ch;
 	int cnt, i, j; 
@@ -548,7 +551,7 @@ int Parse(LifeState* lifeState, const char* rle, int dx, int dy)
 	for(j = 0; j < N; j++)
 		lifeState->state[j] = 0;
 	
-	i = 0;
+	i = starti;
 	
 	while((ch = rle[i]) != '\0')
 	{
@@ -586,6 +589,9 @@ int Parse(LifeState* lifeState, const char* rle, int dx, int dy)
 			if(cnt == 0)
 				cnt = 1;
 			
+			if(cnt == 129)
+				return i + 1;
+				
 			y += cnt;
 			x = 0;
 			cnt = 0;
@@ -596,7 +602,7 @@ int Parse(LifeState* lifeState, const char* rle, int dx, int dy)
 		}
 		else
 		{
-			return FAIL;
+			return -2;
 		}
 		
 		i++;
@@ -605,9 +611,20 @@ int Parse(LifeState* lifeState, const char* rle, int dx, int dy)
 	lifeState->min = 0;
 	lifeState->max = N - 1;
 	
-	Move(lifeState, dx, dy);
-	
-	return SUCCESS;
+	return -1;
+}
+
+int Parse(LifeState* lifeState, const char* rle, int dx, int dy)
+{
+	if(Parse(lifeState, rle, 0) == -1)
+	{
+		Move(lifeState, dx, dy);
+		return SUCCESS;
+	}
+	else 
+	{
+		return FAIL;
+	}
 }
 
 int Parse(LifeState* lifeState, const char* rle)
@@ -648,10 +665,22 @@ LifeState* NewState(const char* rle)
 	return NewState(rle, 0, 0);
 }
 
+
+char* Join(char* first, char* second, int val)
+{
+	char * s = (char *)malloc(sizeof(char) * (strlen(first) + strlen(second) + 2));
+	sprintf(s, "%s%s", first, second);
+	free(first);
+	free(second);
+	return s;
+}
+
 char* Join(char* first, char* second)
 {
-	char * s = (char *)malloc(snprintf(NULL, 0, "%s%s", first, second) + 1);
+	char * s = (char *)malloc(snprintf(NULL, 0, "%s%s", first, second) + 2);
 	sprintf(s, "%s%s", first, second);
+	free(first);
+	free(second);
 	return s;
 }
 
@@ -660,23 +689,28 @@ char* GetRLE(LifeState  * lifeState)
 	uint64_t * state = lifeState->state;
 	char* result = ""; 
 	
-	
 	int i, j;
 	
 	int currowVal,currowCount, numempty, isempty; 
 	
 	numempty = 0;
 	isempty = 1;
-	char str[15];
 	
 
 	for(j = 0; j < N; j++)
 	{
+		char str1[100];
+		char* temp1;
+			
 		currowCount = 1;
 		currowVal = Get(0,j, state);
 			
 		for(i = 1; i < 64; i++)
 		{
+		
+			char str[100];
+			char* temp;
+					
 			if(currowVal == 1)
 			{
 				isempty = 0;
@@ -686,17 +720,21 @@ char* GetRLE(LifeState  * lifeState)
 					if(numempty > 1)
 					{
 						sprintf(str, "%d$", numempty);
-						result = Join(result, str);
+						temp = Join(result,str);
+						result = temp;
 					}
 					else
 					{
-						result = Join(result, "$");
+						temp = Join(result, "$");
+						result = temp;
 					}
 						
 					numempty = 0;
 				}
 			}
 			
+			
+					
 			if(Get(i,j, state) != currowVal)
 			{
 				isempty = 0;
@@ -706,10 +744,14 @@ char* GetRLE(LifeState  * lifeState)
 					if(numempty > 1)
 					{
 						sprintf(str, "%d$", numempty);
-						result = Join(result, str);
+						temp = Join(result, str);
+						result = temp;
 					}
 					else
-						result = Join(result, "$");
+					{
+						temp = Join(result,"$");
+						result = temp;
+					}
 						
 					numempty = 0;
 				}
@@ -717,30 +759,52 @@ char* GetRLE(LifeState  * lifeState)
 				if(currowVal == 0)
 				{
 					if(currowCount == 1)
-						result = Join(result, "b");
+					{
+						temp =Join(result, "b");
+						result = temp;
+					}
 					else
 					{
 						sprintf(str, "%db", currowCount);
-						result = Join(result, str);
+						temp =Join(result, str, 0);
+						result = temp;
+						
 					}
+				
 				}
 				else
 				{
+					
 					if(currowCount == 1)
-						result = Join(result, "o");
+					{
+						temp = Join(result, "o");
+						result = temp;
+					}
 					else
 					{
+				
 						sprintf(str, "%do", currowCount);
-						result = Join(result,str);
+						
+						temp = Join(result,str);
+						
+						result = temp;
+						
+						
 					}
+					
+				
 				}
 				
+								
 				currowCount = 1;
 				currowVal = Get(i,j, state);
+				
 			
 			}
 			else
 			{
+			
+			
 				currowCount++;
 			}
 			
@@ -750,11 +814,15 @@ char* GetRLE(LifeState  * lifeState)
 		{
 			if(currowCount > 1)
 			{	
-				sprintf(str, "%do", currowCount);
-				result = Join(result,str);
+				sprintf(str1, "%do", currowCount);
+				temp1 = Join(result,str1);
+				result = temp1;
 			}
 			else
-				result = Join(result, "o$");
+			{
+				temp1 = Join(result, "o$");
+				result =temp1;
+			}
 		}
 		else 
 		{	
@@ -768,9 +836,13 @@ char* GetRLE(LifeState  * lifeState)
 	return result;
 }
 
+char* LifeRlePrefix()
+{
+	return "x = 0, y = 0, rule = B3/S23\n";
+}
 void PrintRLE(LifeState  * lifeState)
 {
-	char * prefix ="x = 0, y = 0, rule = B3/S23\n";
+	char * prefix = LifeRlePrefix();
 	printf(Join(prefix, GetRLE(lifeState)));
 	printf ("!\n\n");
 }
@@ -1338,11 +1410,11 @@ typedef struct
 	int size;
 	int alocated;
 	
-} ResultManager;
+} LifeResults;
 
-ResultManager* NewResults()
+LifeResults* NewResults()
 {
-	ResultManager* result = (ResultManager*)(malloc(sizeof(ResultManager*)));
+	LifeResults* result = (LifeResults*)(malloc(sizeof(LifeResults*)));
 	
 	result->results = (LifeState**)(malloc(10 * sizeof(LifeState*)));
 	
@@ -1357,29 +1429,81 @@ ResultManager* NewResults()
 	return result;
 }
 
-void Add(ResultManager* manager, LifeState* state)
+void Add(LifeResults* results, LifeState* state)
 {
-	if(manager->size == manager->alocated)
+	if(results->size == results->alocated)
 	{
-		manager->results = (LifeState**)(realloc(manager->results, manager->alocated * 2 * sizeof(LifeState*)));
-		manager->alocated *= 2;
+		results->results = (LifeState**)(realloc(results->results, results->alocated * 2 * sizeof(LifeState*)));
+		results->alocated *= 2;
 		
-		for(int i = manager->size; i < 2 * (manager->size); i++)
+		for(int i = results->size; i < 2 * (results->size); i++)
 		{
-			(manager->results)[i] = NewState();
+			(results->results)[i] = NewState();
 		}
 	}
 	
-	Copy((manager->results)[manager->size], state);
-	manager->size++;
+	Copy((results->results)[results->size], state);
+	results->size++;
 }
 
-void Add(ResultManager* manager)
+void Add(LifeResults* results)
 {
-	Add(manager, GlobalState);
+	Add(results, GlobalState);
 }
 
-void Save(ResultManager* manager, const char* fileName)
+
+char* ReadFile(const char *filePath)
 {
+	char* buffer = "";
+	long length;
+	FILE * f = fopen (filePath, "r");
+
+	if (f)
+	{
+	  fseek (f, 0, SEEK_END);
+	  length = ftell (f);
+	  fseek (f, 0, SEEK_SET);
+	  buffer = (char*)malloc (length);
+	  if (buffer)
+	  {
+		fread (buffer, 1, length, f);
+	  }
+	  fclose (f);
+	  
+	}	
 	
+	return buffer;
+
+}
+
+void SaveResults(LifeResults* results, const char* filePath)
+{
+	FILE *f;
+    f = fopen(filePath, "wb");
+	
+	for(int i = 0; i < results->size; i++)
+	{	
+		fprintf(f,	GetRLE((results->results)[i]));
+		fprintf(f,	"129$");
+	}
+	
+	fclose(f);
+}
+
+LifeResults* LoadResults(const char* filePath)
+{
+	LifeResults* results = NewResults();
+	
+	char* rle = ReadFile(filePath);
+	int idx = 0;
+	
+	while(rle[idx] != '\0')
+	{
+		ClearData(Temp);
+		idx = Parse(Temp, rle, idx);
+		Move(Temp, -32, -32);
+		Add(results, Temp);
+	}
+	
+	return results;
 }
