@@ -1177,9 +1177,9 @@ void FreeIterator(LifeIterator* iter)
 	free(iter);
 }
 
-void PutState(LifeState* state, LifeIterator* iter)
+void Join(LifeState* state, LifeIterator* iter)
 {
-	Join(state, iter->States[iter -> s], iter->curx, iter->cury);
+	Join(state, iter->States[iter -> curs], iter->curx, iter->cury);
 }
 
 void PutState(LifeIterator* iter)
@@ -1429,7 +1429,8 @@ void Add(LifeResults* results)
 
 char* ReadFile(const char *filePath)
 {
-	char* buffer = "";
+	char* buffer = (char*) malloc(1);
+	buffer[0] = '\0';
 	long length;
 	FILE * f = fopen (filePath, "r");
 
@@ -1438,10 +1439,10 @@ char* ReadFile(const char *filePath)
 	  fseek (f, 0, SEEK_END);
 	  length = ftell (f);
 	  fseek (f, 0, SEEK_SET);
-	  buffer = (char*)malloc (length);
+	  buffer = (char*)realloc (buffer, length);
 	  if (buffer)
 	  {
-		fread (buffer, 1, length, f);
+		int len = fread (buffer, 1, length, f); // len unused
 	  }
 	  fclose (f);
 	  
@@ -1458,7 +1459,7 @@ void SaveResults(LifeResults* results, const char* filePath)
 	
 	for(int i = 0; i < results->size; i++)
 	{	
-		fprintf(f,	GetRLE((results->results)[i]));
+		fputs(GetRLE((results->results)[i]), f);
 		fprintf(f,	"129$");
 	}
 	
