@@ -28,6 +28,73 @@ enum EvolveType { EVOLVE, LEAVE };
 
 typedef struct 
 {
+	char* value;
+	int size;
+	int allocated;
+	
+} LifeString;
+
+LifeString* NewString()
+{
+	LifeString* result = (LifeString*)(malloc(sizeof(LifeString*)));
+	
+	result->value = (char*)(malloc(2 * sizeof(char*)));
+	result->value[0] = '\0';
+	result->size = 1;
+	result->allocated = 1;
+	
+	return result;
+}
+
+void Realloc(LifeString* string)
+{
+	int empty = NO;
+	
+	if(string->value[0] == '\0')
+		empty = YES;
+	
+	if(empty == NO)
+	{
+		string->value = (char*)(realloc(string->value, string->allocated * 2 * sizeof(char)));
+	}
+	else
+	{
+		string->value = (char*)(malloc(string->allocated * 2 * sizeof(char)));
+		string->value[0] = '\0';
+	}
+	
+	string->allocated *= 2;
+}
+
+void Realloc(LifeString* string, int size)
+{
+	while(string->allocated <= string->size + size + 1)
+		Realloc(string);
+}
+
+void Append(LifeString* string, const char* val)
+{
+	Realloc(string, strlen(val));
+	strcat(string->value, val);
+	string->size = strlen(string->value);
+}
+
+void Append(LifeString* string, int val)
+{
+	char str[10];
+	sprintf(str, "%d", val);
+	Append(string, str);
+}
+
+LifeString* NewString(const char* val)
+{
+	LifeString* result = NewString();
+	Append(result, val);
+	return result;
+}
+
+typedef struct 
+{
 	int min;
 	int max; 
 	uint64_t  state[N];
@@ -92,7 +159,7 @@ int GetCell(LifeState* state, int x, int y)
 	return Get((x + 32) % 64, (y + 32) % 64, state->state);
 }
 
-int GetCell(int x, int y, int val)
+int GetCell(int x, int y)
 {
 	return GetCell(GlobalState, x, y);
 }
@@ -364,7 +431,7 @@ void IterateState(LifeState  *lifstate)
 	uint64_t x0, r0, xU, aU, xB, aB;
 	uint64_t a0,a1,a2,c, b0, b1, b2;
 
-	int i, j, idxU, idxB, minNot0, maxNot0;
+	int i, idxU, idxB;
 	
 	for(i = min; i <= max; i++)
 	{
@@ -421,9 +488,6 @@ void IterateState(LifeState  *lifstate)
 	if(e == N - 2)
 		e = N - 1;
 	
-	int newmin = s;
-	int newmax = e;
-	
 	for(i = s; i <= e; i++)
 	{
 		state[i] = tempState[i];
@@ -456,11 +520,7 @@ void CirculateUp(uint64_t  *state, int anyk)
 
 void Move(LifeState* state, int x, int y)
 {
-	int i, j;
-	
-	uint64_t temp[N];
-	
-	for(i = 0; i < N; i++)
+	for(int i = 0; i < N; i++)
 	{
 		if(y < 0)
 			state->state[i] = CirculateRight(state->state[i], -y);
@@ -538,8 +598,7 @@ void Transform(LifeState* state, int dx, int dy)
 	Move(state, dx, dy);
 }
 
-
-int Parse(LifeState* lifeState, const char* rle, int starti)
+int Parse(LifeState* state, const char* rle, int starti)
 {
 	char ch;
 	int cnt, i, j; 
@@ -548,8 +607,7 @@ int Parse(LifeState* lifeState, const char* rle, int starti)
 	y = 0;
 	cnt = 0;
 	
-	for(j = 0; j < N; j++)
-		lifeState->state[j] = 0;
+	ClearData(state);
 	
 	i = starti;
 	
@@ -569,7 +627,7 @@ int Parse(LifeState* lifeState, const char* rle, int starti)
 				
 			for(j = 0; j < cnt; j++)
 			{
-				SetCell(lifeState, x, y, 1);
+				SetCell(state, x, y, 1);
 				x++;
 			}
 			
@@ -608,17 +666,17 @@ int Parse(LifeState* lifeState, const char* rle, int starti)
 		i++;
 	}
 	
-	lifeState->min = 0;
-	lifeState->max = N - 1;
+	state->min = 0;
+	state->max = N - 1;
 	
 	return -1;
 }
 
-int Parse(LifeState* lifeState, const char* rle, int dx, int dy)
+int Parse(LifeState* state, const char* rle, int dx, int dy)
 {
-	if(Parse(lifeState, rle, 0) == -1)
+	if(Parse(state, rle, 0) == -1)
 	{
-		Move(lifeState, dx, dy);
+		Move(state, dx, dy);
 		return SUCCESS;
 	}
 	else 
@@ -627,17 +685,18 @@ int Parse(LifeState* lifeState, const char* rle, int dx, int dy)
 	}
 }
 
-int Parse(LifeState* lifeState, const char* rle)
+
+int Parse(LifeState* state, const char* rle)
 {
-	return Parse(lifeState, rle,  0, 0);
+	return Parse(state, rle, 0, 0);
 }
 
-int Parse(LifeState* lifeState, const char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
+int Parse(LifeState* state, const char* rle, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
 {
-	int result = Parse(lifeState, rle);
+	int result = Parse(state, rle);
 	
 	if(result == SUCCESS)
-		Transform(lifeState, dx, dy, dxx, dxy, dyx, dyy);
+		Transform(state, dx, dy, dxx, dxy, dyx, dyy);
 		
 	return result;
 }
@@ -665,186 +724,67 @@ LifeState* NewState(const char* rle)
 	return NewState(rle, 0, 0);
 }
 
-
-char* Join(char* first, char* second, int val)
+const char* GetRLE(LifeState *state)
 {
-	char * s = (char *)malloc(sizeof(char) * (strlen(first) + strlen(second) + 2));
-	sprintf(s, "%s%s", first, second);
-	free(first);
-	free(second);
-	return s;
-}
+    LifeString* result = NewString();
+	
+	int eol_count = 0; 
 
-char* Join(char* first, char* second)
-{
-	char * s = (char *)malloc(snprintf(NULL, 0, "%s%s", first, second) + 2);
-	sprintf(s, "%s%s", first, second);
-	free(first);
-	free(second);
-	return s;
-}
-
-char* GetRLE(LifeState  * lifeState)
-{
-	uint64_t * state = lifeState->state;
-	char* result = ""; 
-	
-	int i, j;
-	
-	int currowVal,currowCount, numempty, isempty; 
-	
-	numempty = 0;
-	isempty = 1;
-	
-
-	for(j = 0; j < N; j++)
+	for(int j = 0; j < N; j++)
 	{
-		char str1[100];
-		char* temp1;
+            int last_val = -1;
+            int run_count = 0;
 			
-		currowCount = 1;
-		currowVal = Get(0,j, state);
-			
-		for(i = 1; i < 64; i++)
+           for(int i = 0; i < N; i++)
 		{
-		
-			char str[100];
-			char* temp;
-					
-			if(currowVal == 1)
-			{
-				isempty = 0;
-				
-				if(numempty > 0)
-				{
-					if(numempty > 1)
+                    int val = Get(i, j, state->state);
+
+                    // Flush linefeeds if we find a live cell
+                    if(val == 1 && eol_count > 0)
 					{
-						sprintf(str, "%d$", numempty);
-						temp = Join(result,str);
-						result = temp;
+                            if(eol_count > 1)
+                                Append(result, eol_count);
+                            
+							Append(result, "$");
+                            
+                            eol_count = 0;
 					}
-					else
-					{
-						temp = Join(result, "$");
-						result = temp;
-					}
-						
-					numempty = 0;
-				}
+
+                    // Flush current run if val changes
+                    if (val == 1 - last_val)
+                        {
+                            if(run_count > 1)
+                                Append(result, run_count);
+                            
+							Append(result, last_val ? "o" : "b");
+                            
+                            run_count = 0;
 			}
-			
-			
-					
-			if(Get(i,j, state) != currowVal)
-			{
-				isempty = 0;
-				
-				if(numempty > 0)
-				{
-					if(numempty > 1)
-					{
-						sprintf(str, "%d$", numempty);
-						temp = Join(result, str);
-						result = temp;
-					}
-					else
-					{
-						temp = Join(result,"$");
-						result = temp;
-					}
-						
-					numempty = 0;
-				}
-				
-				if(currowVal == 0)
-				{
-					if(currowCount == 1)
-					{
-						temp =Join(result, "b");
-						result = temp;
-					}
-					else
-					{
-						sprintf(str, "%db", currowCount);
-						temp =Join(result, str, 0);
-						result = temp;
-						
-					}
-				
-				}
-				else
-				{
-					
-					if(currowCount == 1)
-					{
-						temp = Join(result, "o");
-						result = temp;
-					}
-					else
-					{
-				
-						sprintf(str, "%do", currowCount);
-						
-						temp = Join(result,str);
-						
-						result = temp;
-						
-						
-					}
-					
-				
-				}
-				
-								
-				currowCount = 1;
-				currowVal = Get(i,j, state);
-				
-			
-			}
-			else
-			{
-			
-			
-				currowCount++;
-			}
-			
-		}
-		
-		if(currowVal == 1)
-		{
-			if(currowCount > 1)
-			{	
-				sprintf(str1, "%do", currowCount);
-				temp1 = Join(result,str1);
-				result = temp1;
-			}
-			else
-			{
-				temp1 = Join(result, "o$");
-				result =temp1;
-			}
-		}
-		else 
-		{	
-			numempty++;
-		}
-		
-		isempty = 1;
-		
+
+                    run_count++;
+                    last_val = val;
+                }
+
+            // Flush run of live cells at end of line
+            if (last_val == 1)
+                {
+                    if(run_count > 1)
+                        Append(result, run_count);
+                            
+                    Append(result, "o");
+                            
+                    run_count = 0;
+                }
+
+            eol_count++;
 	}
-	
-	return result;
+        
+	return result->value;
 }
 
-char* LifeRlePrefix()
+void PrintRLE(LifeState *state)
 {
-	return "x = 0, y = 0, rule = B3/S23\n";
-}
-void PrintRLE(LifeState  * lifeState)
-{
-	char * prefix = LifeRlePrefix();
-	printf(Join(prefix, GetRLE(lifeState)));
-	printf ("!\n\n");
+    printf("x = 0, y = 0, rule = B3/S23\n%s!\n\n", GetRLE(state));
 }
 
 void Print()
@@ -869,9 +809,45 @@ void PrintRLE(int idx)
 
 void Evolve(LifeState* state, int numIters)
 {
-	int i; 
-	for(i = 0; i < numIters; i++)
+	for(int i = 0; i < numIters; i++)
 		IterateState(state);
+}
+
+void Evolve(LifeState* after, LifeState* before, int numIters)
+{
+        Copy(after, before);
+        Evolve(after, numIters);
+}
+
+namespace PRNG {
+
+    //Public domain PRNG by Sebastian Vigna 2014, see http://xorshift.di.unimi.it
+
+    uint64_t s[16] = { 0x12345678 }; 
+    int p = 0;
+    
+    uint64_t rand64() { 
+        uint64_t s0 = s[ p ];
+	uint64_t s1 = s[ p = ( p + 1 ) & 15 ];
+	s1 ^= s1 << 31; // a
+	s1 ^= s1 >> 11; // b
+	s0 ^= s0 >> 30; // c
+	return ( s[ p ] = s0 ^ s1 ) * 1181783497276652981ULL; 
+    }
+
+}
+
+void RandomState(LifeState* state) {
+
+    for (int i = 0; i < N; i++)
+        state->state[i] = PRNG::rand64();
+
+    RecalculateMinMax(state);
+}
+
+void RandomState() {
+    
+    RandomState(GlobalState);
 }
 
 void New()
@@ -1234,9 +1210,7 @@ int Validate(LifeIterator *iter1, LifeIterator *iter2)
 		
 	if(iter1->curx != iter2->curx)
 	{
-		//Those two lines are the same
-		//if((iter1->curx + iter2->curx) % 2 == 0)
-		if((iter1->curx + iter2->curx) & 1 == 0)
+		if((iter1->curx + iter2->curx) % 2 == 0)
 		{
 			if(iter1->curx > iter2->curx)
 				return SUCCESS;
@@ -1254,7 +1228,7 @@ int Validate(LifeIterator *iter1, LifeIterator *iter2)
 	
 	if(iter1->cury != iter2->cury)
 	{
-		if((iter1->cury + iter2->cury) & 1 == 0)
+		if((iter1->cury + iter2->cury) % 2 == 0)
 		{
 			if(iter1->cury > iter2->cury)
 				return SUCCESS;
@@ -1270,7 +1244,7 @@ int Validate(LifeIterator *iter1, LifeIterator *iter2)
 		}
 	}
 	
-	if((iter1->curs + iter2->curs) & 1 == 0)
+	if((iter1->curs + iter2->curs) % 2 == 0)
 	{
 		if(iter1->curs > iter2->curs)
 			return SUCCESS;
@@ -1404,11 +1378,13 @@ void FreeTarget(LifeTarget* iter)
 }
 
 
+
+
 typedef struct 
 {
 	LifeState** results;
 	int size;
-	int alocated;
+	int allocated;
 	
 } LifeResults;
 
@@ -1423,7 +1399,7 @@ LifeResults* NewResults()
 		(result->results)[i] = NewState();
 	}
 	
-	result->alocated = 10;
+	result->allocated = 10;
 	result->size = 0;
 	
 	return result;
@@ -1431,10 +1407,10 @@ LifeResults* NewResults()
 
 void Add(LifeResults* results, LifeState* state)
 {
-	if(results->size == results->alocated)
+	if(results->size == results->allocated)
 	{
-		results->results = (LifeState**)(realloc(results->results, results->alocated * 2 * sizeof(LifeState*)));
-		results->alocated *= 2;
+		results->results = (LifeState**)(realloc(results->results, results->allocated * 2 * sizeof(LifeState*)));
+		results->allocated *= 2;
 		
 		for(int i = results->size; i < 2 * (results->size); i++)
 		{
@@ -1450,7 +1426,6 @@ void Add(LifeResults* results)
 {
 	Add(results, GlobalState);
 }
-
 
 char* ReadFile(const char *filePath)
 {
