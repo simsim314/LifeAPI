@@ -1179,7 +1179,7 @@ void FreeIterator(LifeIterator* iter)
 
 void PutState(LifeState* state, LifeIterator* iter)
 {
-	Join(state, iter->States[iter -> s], iter->curx, iter->cury);
+	Join(state, iter->States[iter -> curs], iter->curx, iter->cury);
 }
 
 void PutState(LifeIterator* iter)
