@@ -21,9 +21,10 @@ How to use
 Enjoy. 
 
 
+**NOTE** LifeAPI is in rapid development so we update the UnitTest.c to its latest abilities (actually no commit is done before the UnitTest.c was updated and made sure to work properly, with the latest changes). The samples might be outdated, or even not work. 
+
 API Documentation 
 ==========
----
 ---
 
 
