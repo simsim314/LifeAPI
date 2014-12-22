@@ -1,7 +1,7 @@
 General Information
 ===
 
-LifeAPI provides comfortable functions (API) to manipulate, iterate, evolve, compare and report Life objects. This is mainly done in order to provide fast (using C++) but still comfortable search utility. 
+LifeAPI provides comfortable functions (API) to manipulate, search, evolve, compare and report Life objects. This is mainly done in order to provide fast (using C++) but still comfortable search utility. 
 
 LifeAPI is C++ application (compiles only with c++ compiler, specifically g++ is recommended), that uses mainly the overload functionality of C++. It doesn't use classes, and compiling it will not require Make, you only need to #include "LifeAPI.h". Many times it's the only #include that you will need, for this sort of applications. It works as fast as C. 
 
