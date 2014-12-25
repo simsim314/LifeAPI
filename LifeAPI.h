@@ -2,7 +2,6 @@
 //in order to provide fast (using C) but still comfortable search utility. 
 //Contributor Chris Cain. 
 //Written by Michael Simkin 2014
-
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -20,7 +19,7 @@
 
 #ifdef __MSC_VER
 #  include <intrin.h>
-#  define __builtin_popcount __popcnt64
+#  define __builtin_popcountll __popcnt64
 #endif
 
 enum CopyType { COPY, OR, XOR, AND };
@@ -104,15 +103,13 @@ typedef struct
 	
 } LifeState;
 
-inline uint64_t CirculateLeft(uint64_t x);
-inline uint64_t CirculateRight(uint64_t x);
 static LifeState* GlobalState;
 static LifeState* Captures[CAPTURE_COUNT];
 static LifeState* Temp, *Temp1, *Temp2;
 
 
-inline uint64_t CirculateLeft(uint64_t x)
-{
+
+inline uint64_t CirculateLeft(uint64_t x){
 	return (x << 1) | (x >> (63));
 }
 
@@ -503,17 +500,9 @@ void Transform(LifeState* state, int dx, int dy, int dxx, int dxy, int dyx, int 
 			int val = GetCell(state, x1, y1);
 			
 			SetCell(Temp, x, y, val);
-			
-			if(val == 1)
-			{
-				//print(Temp);
-				//getch();
-				//printf("%d, %d, %d, %d, %d\n", x, y, x1, y1, GetPop(Temp));
-			}
 		}
 	}
 	
-	//print(Temp);
 	
 	Copy(state, Temp);
 	Move(state, dx, dy);
@@ -726,6 +715,27 @@ LifeTarget* NewTarget(const char* rle)
 	return NewTarget(rle, 0, 0);
 }
 
+int Contains(LifeState* state, LifeTarget* target)
+{
+	if(Contains(state, target->wanted) == YES && AreDisjoint(state, target->unwanted) == YES)
+		return YES;
+	else
+		return NO;
+}
+
+int Contains(LifeTarget* target)
+{
+	return Contains(GlobalState, target);
+}
+
+void FreeTarget(LifeTarget* iter)
+{
+	free(iter -> wanted);
+	free(iter -> unwanted);
+	
+	free(iter);
+}
+
 
 typedef struct 
 {
@@ -859,28 +869,6 @@ void Locate(LifeState* state, Locator* locator, LifeState* result)
 }
 
 
-int Contains(LifeState* state, LifeTarget* target)
-{
-	if(Contains(state, target->wanted) == YES && AreDisjoint(state, target->unwanted) == YES)
-		return YES;
-	else
-		return NO;
-}
-
-int Contains(LifeTarget* target)
-{
-	return Contains(GlobalState, target);
-}
-
-void FreeTarget(LifeTarget* iter)
-{
-	free(iter -> wanted);
-	free(iter -> unwanted);
-	
-	free(iter);
-}
-
-
 typedef struct 
 {
   Locator* onLocator;
@@ -921,7 +909,6 @@ TargetLocator* NewTargetLocator(const char* rle, int x, int y)
 	return result;
 }
 
-
 uint64_t LocateAtX(LifeState* state, TargetLocator* targetLocator, int x)
 {
 	return LocateAtX(state, targetLocator->onLocator, targetLocator->offLocator,  x);
@@ -943,7 +930,6 @@ void LocateTarget(TargetLocator* targetLocator, LifeState* result)
 }
 
 static TargetLocator* _glidersTarget[4];
-
 
 int RemoveAtX(LifeState *state, int x, int startGiderIdx)
 {
@@ -1167,7 +1153,7 @@ const char* GetRLE(LifeState *state)
 
 void PrintRLE(LifeState *state)
 {
-    printf("x = 0, y = 0, rule = B3/S23\n%s!\n\n", GetRLE(state));
+    printf("\nx = 0, y = 0, rule = B3/S23\n%s!\n\n", GetRLE(state));
 }
 
 void Print()
@@ -1758,4 +1744,3 @@ LifeResults* LoadResults(const char* filePath)
 	
 	return results;
 }
-
