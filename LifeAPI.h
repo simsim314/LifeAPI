@@ -2,6 +2,7 @@
 //in order to provide fast (using C) but still comfortable search utility. 
 //Contributor Chris Cain. 
 //Written by Michael Simkin 2014
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -19,7 +20,7 @@
 
 #ifdef __MSC_VER
 #  include <intrin.h>
-#  define __builtin_popcountll __popcnt64
+#  define __builtin_popcount __popcnt64
 #endif
 
 enum CopyType { COPY, OR, XOR, AND };
@@ -43,6 +44,13 @@ LifeString* NewString()
 	result->allocated = 1;
 	
 	return result;
+}
+
+void Clear(LifeString* s)
+{
+	s->value[0] = '\0';
+	s->size = 1;
+
 }
 
 void Realloc(LifeString* string)
@@ -106,8 +114,6 @@ typedef struct
 static LifeState* GlobalState;
 static LifeState* Captures[CAPTURE_COUNT];
 static LifeState* Temp, *Temp1, *Temp2;
-
-
 
 inline uint64_t CirculateLeft(uint64_t x){
 	return (x << 1) | (x >> (63));
@@ -350,14 +356,15 @@ void ClearData(LifeState* state)
 	state -> min = 0;
 	state -> max = N - 1;
 	state->gen = 0;
-	state->emittedGliders = NewString();
+	
+	Clear(state->emittedGliders);
+
 }
-
-
 
 LifeState* NewState()
 {
 	LifeState* result = (LifeState*)(malloc(sizeof(LifeState)));
+	result->emittedGliders = NewString();
 	ClearData(result);
 	
 	return result;
@@ -410,6 +417,43 @@ int Contains(LifeState* main, LifeState* spark)
 	return YES;
 }
 
+int AreDisjoint(LifeState* main, LifeState* pat, int targetDx, int targetDy)
+{
+	int min = pat->min;
+	int max = pat->max;
+	uint64_t * patState = pat->state;
+	uint64_t * mainState = main->state;
+	int dy = (targetDy + 64) % 64;
+	
+	for(int i = min; i <= max; i++)
+	{
+		int curX = (N + i + targetDx) % N; 
+		
+		if(((~CirculateRight(mainState[curX], dy)) & patState[i]) != patState[i])
+			return NO;
+	}
+
+	return YES;
+}
+
+int Contains(LifeState* main, LifeState* spark, int targetDx, int targetDy)
+{
+	int min = spark->min;
+	int max = spark->max;
+	
+	uint64_t * mainState = main->state;
+	uint64_t * sparkState = spark->state;
+	int dy = (targetDy + 64) % 64;
+	
+	for(int i = min; i <= max; i++)
+	{
+		int curX = (N + i + targetDx) % N; 
+		
+		if((CirculateRight(mainState[curX], dy) & sparkState[i]) != (sparkState[i]))
+			return NO;
+	}		
+	return YES;
+}
 
 int AllOn(LifeState* spark)
 {
@@ -485,7 +529,10 @@ void FlipX(int idx)
 
 void Transform(LifeState* state, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
 {
-	ClearData(Temp);
+	ClearData(Temp2);
+	ClearData(Temp1);
+	Copy(Temp1, state);
+	Move(Temp1, dx, dy);
 	
 	for(int i = 0; i < N; i++)
 	{
@@ -497,15 +544,13 @@ void Transform(LifeState* state, int dx, int dy, int dxx, int dxy, int dyx, int 
 			int x1 = x * dxx + y * dxy;
 			int y1 = x * dyx + y * dyy;
 			
-			int val = GetCell(state, x1, y1);
+			int val = GetCell(Temp1, x1, y1);
 			
-			SetCell(Temp, x, y, val);
+			SetCell(Temp2, x, y, val);
 		}
 	}
 	
-	
-	Copy(state, Temp);
-	Move(state, dx, dy);
+	Copy(state, Temp2);
 	RecalculateMinMax(state);
 }
 
@@ -713,6 +758,14 @@ LifeTarget* NewTarget(const char* rle, int x, int y)
 LifeTarget* NewTarget(const char* rle)
 {
 	return NewTarget(rle, 0, 0);
+}
+
+int Contains(LifeState* state, LifeTarget* target, int dx, int dy)
+{
+	if(Contains(state, target->wanted, dx, dy) == YES && AreDisjoint(state, target->unwanted, dx, dy) == YES)
+		return YES;
+	else
+		return NO;
 }
 
 int Contains(LifeState* state, LifeTarget* target)
@@ -1306,10 +1359,10 @@ void PutState(int idx)
 
 void PutState(LifeState* state, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
 {
-	ClearData(Temp1);
-	Copy(Temp1, state);
-	Transform(Temp1, dx, dy, dxx, dxy, dyx, dyy);
-	PutState(Temp1);
+	ClearData(Temp);
+	Copy(Temp, state);
+	Transform(Temp, dx, dy, dxx, dxy, dyx, dyy);
+	PutState(Temp);
 }
 
 void PutState(LifeState* state, CopyType op)
@@ -1575,69 +1628,41 @@ void SetCurrent(LifeIterator* iter, int curx, int cury, int curs)
 
 int Validate(LifeIterator *iter1, LifeIterator *iter2)
 {
-	if(!(iter1->curx >= iter2->x && iter1->curx < iter2->x + iter2->w))
+	if(iter1->curx > iter2->curx)
 		return SUCCESS;
 	
-	if(!(iter1->cury >= iter2->y && iter1->cury < iter2->y + iter2->h))
+	if(iter1->curx < iter2->curx)
+		return FAIL;
+	
+	if(iter1->cury > iter2->cury)
+		return SUCCESS;
+	
+	if(iter1->cury < iter2->cury)
+		return FAIL;
+		
+	if(iter1->curs > iter2->curs)
 		return SUCCESS;
 		
-	if(!(iter2->curx >= iter1->x && iter2->curx < iter1->x + iter1->w))
-		return SUCCESS;
+	return FAIL;
+}
+
+int Validate(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3)
+{
+	if(Validate(iter1, iter2) == FAIL)
+		return FAIL;
 	
-	if(!(iter2->cury >= iter1->y && iter2->cury < iter1->y + iter1->h))
-		return SUCCESS;
-		
-	if(iter1->curx != iter2->curx)
-	{
-		if((iter1->curx + iter2->curx) % 2 == 0)
-		{
-			if(iter1->curx > iter2->curx)
-				return SUCCESS;
-			else
-				return FAIL;
-		}
-		else
-		{
-			if(iter1->curx > iter2->curx)
-				return FAIL;
-			else
-				return SUCCESS;
-		}
-	}
+	if(Validate(iter2, iter3) == FAIL)
+		return FAIL;
 	
-	if(iter1->cury != iter2->cury)
-	{
-		if((iter1->cury + iter2->cury) % 2 == 0)
-		{
-			if(iter1->cury > iter2->cury)
-				return SUCCESS;
-			else
-				return FAIL;
-		}
-		else
-		{
-			if(iter1->cury > iter2->cury)
-				return FAIL;
-			else
-				return SUCCESS;
-		}
-	}
-	
-	if((iter1->curs + iter2->curs) % 2 == 0)
-	{
-		if(iter1->curs > iter2->curs)
-			return SUCCESS;
-		else
+	return SUCCESS;
+}
+
+int Validate(LifeIterator *iters[], int iterCount)
+{
+	for(int i = 0; i < iterCount - 1; i++)
+		if(Validate(iters[i], iters[i + 1]) == FAIL)
 			return FAIL;
-	}
-	else
-	{
-		if(iter1->curs > iter2->curs)
-			return FAIL;
-		else
-			return SUCCESS;
-	}
-	
+			
 	return SUCCESS;
 }
 
