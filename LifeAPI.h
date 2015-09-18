@@ -9,7 +9,7 @@
 #include <string.h>
 
 #define N 64
-#define CAPTURE_COUNT 10 
+#define CAPTURE_COUNT 10
 #define MAX_ITERATIONS 200
 
 #define SUCCESS 1
@@ -58,7 +58,10 @@ void Realloc(LifeString* string)
 	int empty = NO;
 	
 	if(string->value[0] == '\0')
+	{
+		free(string->value);
 		empty = YES;
+	}
 	
 	if(empty == NO)
 	{
@@ -98,6 +101,11 @@ LifeString* NewString(const char* val)
 	LifeString* result = NewString();
 	Append(result, val);
 	return result;
+}
+void FreeString(LifeString* string)
+{
+	free(string->value);
+	free(string);
 }
 
 typedef struct 
@@ -527,12 +535,10 @@ void FlipX(int idx)
 	
 }
 
+// Edited this function for Golly-compatibility --Scorbie
 void Transform(LifeState* state, int dx, int dy, int dxx, int dxy, int dyx, int dyy)
 {
-	ClearData(Temp2);
 	ClearData(Temp1);
-	Copy(Temp1, state);
-	Move(Temp1, dx, dy);
 	
 	for(int i = 0; i < N; i++)
 	{
@@ -540,17 +546,15 @@ void Transform(LifeState* state, int dx, int dy, int dxx, int dxy, int dyx, int 
 		{
 			int x = i - 32; 
 			int y = j - 32;
+
+			int x1 = dx + x * dxx + y * dxy;
+			int y1 = dy + x * dyx + y * dyy;
 			
-			int x1 = x * dxx + y * dxy;
-			int y1 = x * dyx + y * dyy;
-			
-			int val = GetCell(Temp1, x1, y1);
-			
-			SetCell(Temp2, x, y, val);
+			SetCell(Temp1, x1, y1, GetCell(state, x, y));
 		}
 	}
 	
-	Copy(state, Temp2);
+	Copy(state, Temp1);
 	RecalculateMinMax(state);
 }
 
@@ -562,20 +566,20 @@ void Transform(LifeState* state, int dx, int dy)
 
 void GetBoundary(LifeState* state, LifeState* boundary)
 {
-    for(int i = 0; i < N; i++) {
-        uint64_t col = state->state[i];
-        Temp->state[i] = col | CirculateLeft(col) | CirculateRight(col);
-    }
+	for(int i = 0; i < N; i++) {
+		uint64_t col = state->state[i];
+		Temp->state[i] = col | CirculateLeft(col) | CirculateRight(col);
+	}
 
-    boundary->state[0] = Temp->state[N-1] | Temp->state[0] | Temp->state[1];
-    
-    for(int i = 1; i < N-1; i++)
-        boundary->state[i] = Temp->state[i-1] | Temp->state[i] | Temp->state[i+1];
+	boundary->state[0] = Temp->state[N-1] | Temp->state[0] | Temp->state[1];
+	
+	for(int i = 1; i < N-1; i++)
+		boundary->state[i] = Temp->state[i-1] | Temp->state[i] | Temp->state[i+1];
 
-    boundary->state[N-1] = Temp->state[N-2] | Temp->state[N-1] | Temp->state[0];
-    
-    for(int i = 0; i < N; i++)
-        boundary->state[i] &= ~(state->state[i]);
+	boundary->state[N-1] = Temp->state[N-2] | Temp->state[N-1] | Temp->state[0];
+	
+	for(int i = 0; i < N; i++)
+		boundary->state[i] &= ~(state->state[i]);
 }
 
 void GetBoundary(LifeState* state, int captureIdx)
@@ -697,7 +701,11 @@ int Parse(LifeState* state, const char* rle, int dx, int dy, int dxx, int dxy, i
 	return result;
 }
 
-
+void FreeState(LifeState* state)
+{
+	FreeString(state->emittedGliders);
+	free(state);
+}
 
 typedef struct 
 {
@@ -783,8 +791,8 @@ int Contains(LifeTarget* target)
 
 void FreeTarget(LifeTarget* iter)
 {
-	free(iter -> wanted);
-	free(iter -> unwanted);
+	FreeState(iter -> wanted);
+	FreeState(iter -> unwanted);
 	
 	free(iter);
 }
@@ -810,7 +818,7 @@ Locator* NewLocator()
 	return result;
 }
 
-Locator* Realloc(Locator* locator)
+void Realloc(Locator* locator)
 {
 	if(locator->allocated <= locator->len)
 	{				
@@ -835,9 +843,9 @@ Locator *State2Locator(LifeState* state)
 	
 	for(int j = 0; j < N; j++)
 	{
-        for(int i = 0; i < N; i++)
+		for(int i = 0; i < N; i++)
 		{
-            int val = Get(i, j, state->state);
+			int val = Get(i, j, state->state);
 			
 			if(val == 1)
 				Add(result, i, j);
@@ -921,6 +929,12 @@ void Locate(LifeState* state, Locator* locator, LifeState* result)
 	LocateInRange(state, locator, result, state->min, state->max, NO);
 }
 
+void FreeLocator(Locator* locator)
+{
+	free(locator->xList);
+	free(locator->yList);
+	free(locator);
+}
 
 typedef struct 
 {
@@ -951,14 +965,18 @@ TargetLocator* Target2Locator(LifeTarget* target)
 
 TargetLocator* NewTargetLocator(const char* rle)
 {
-	TargetLocator* result = Target2Locator(NewTarget(rle, -32, -32));
+	LifeTarget* target = NewTarget(rle, -32, -32);
+	TargetLocator* result = Target2Locator(target);
+	FreeTarget(target);
 	return result;
 }
 
 
 TargetLocator* NewTargetLocator(const char* rle, int x, int y)
 {
-	TargetLocator* result = Target2Locator(NewTarget(rle, -32 + x, -32 + y));
+	LifeTarget* target = NewTarget(rle, -32 + x, -32 + y);
+	TargetLocator* result = Target2Locator(target);
+	FreeTarget(target);
 	return result;
 }
 
@@ -980,6 +998,13 @@ void LocateTarget(LifeState* state, TargetLocator* targetLocator, LifeState* res
 void LocateTarget(TargetLocator* targetLocator, LifeState* result)
 {
 	LocateTarget(GlobalState, targetLocator, result);
+}
+
+void FreeTargetLocator(TargetLocator* targetLocator)
+{
+	FreeLocator(targetLocator->onLocator);
+	FreeLocator(targetLocator->offLocator);
+	free(targetLocator);
 }
 
 static TargetLocator* _glidersTarget[4];
@@ -1027,7 +1052,7 @@ int RemoveAtX(LifeState *state, int x, int startGiderIdx)
 void RemoveGliders(LifeState *state)
 {
 	int removed = NO;
-	int x = 1;
+	int x = 1;// x unused
 	
 	if(state->min <= 1)
 		if(RemoveAtX(state, 1, 0) == YES)
@@ -1148,65 +1173,65 @@ LifeState* NewState(const char* rle)
 
 const char* GetRLE(LifeState *state)
 {
-    LifeString* result = NewString();
+	LifeString* result = NewString();
 	
 	int eol_count = 0; 
 
 	for(int j = 0; j < N; j++)
 	{
-            int last_val = -1;
-            int run_count = 0;
+			int last_val = -1;
+			int run_count = 0;
 			
-           for(int i = 0; i < N; i++)
+		   for(int i = 0; i < N; i++)
 		{
-                    int val = Get(i, j, state->state);
+					int val = Get(i, j, state->state);
 
-                    // Flush linefeeds if we find a live cell
-                    if(val == 1 && eol_count > 0)
+					// Flush linefeeds if we find a live cell
+					if(val == 1 && eol_count > 0)
 					{
-                            if(eol_count > 1)
-                                Append(result, eol_count);
-                            
+							if(eol_count > 1)
+								Append(result, eol_count);
+							
 							Append(result, "$");
-                            
-                            eol_count = 0;
+							
+							eol_count = 0;
 					}
 
-                    // Flush current run if val changes
-                    if (val == 1 - last_val)
-                        {
-                            if(run_count > 1)
-                                Append(result, run_count);
-                            
+					// Flush current run if val changes
+					if (val == 1 - last_val)
+						{
+							if(run_count > 1)
+								Append(result, run_count);
+							
 							Append(result, last_val ? "o" : "b");
-                            
-                            run_count = 0;
+							
+							run_count = 0;
 			}
 
-                    run_count++;
-                    last_val = val;
-                }
+					run_count++;
+					last_val = val;
+				}
 
-            // Flush run of live cells at end of line
-            if (last_val == 1)
-                {
-                    if(run_count > 1)
-                        Append(result, run_count);
-                            
-                    Append(result, "o");
-                            
-                    run_count = 0;
-                }
+			// Flush run of live cells at end of line
+			if (last_val == 1)
+				{
+					if(run_count > 1)
+						Append(result, run_count);
+							
+					Append(result, "o");
+							
+					run_count = 0;
+				}
 
-            eol_count++;
+			eol_count++;
 	}
-        
+		
 	return result->value;
 }
 
 void PrintRLE(LifeState *state)
 {
-    printf("\nx = 0, y = 0, rule = B3/S23\n%s!\n\n", GetRLE(state));
+	printf("\nx = 0, y = 0, rule = B3/S23\n%s!\n\n", GetRLE(state));
 }
 
 void Print()
@@ -1240,39 +1265,39 @@ void Evolve(LifeState* state, int numIters)
 
 void Evolve(LifeState* after, LifeState* before, int numIters)
 {
-        Copy(after, before);
-        Evolve(after, numIters);
+		Copy(after, before);
+		Evolve(after, numIters);
 }
 
 namespace PRNG {
 
-    //Public domain PRNG by Sebastian Vigna 2014, see http://xorshift.di.unimi.it
+	//Public domain PRNG by Sebastian Vigna 2014, see http://xorshift.di.unimi.it
 
-    uint64_t s[16] = { 0x12345678 }; 
-    int p = 0;
-    
-    uint64_t rand64() { 
-        uint64_t s0 = s[ p ];
+	uint64_t s[16] = { 0x12345678 }; 
+	int p = 0;
+	
+	uint64_t rand64() { 
+		uint64_t s0 = s[ p ];
 	uint64_t s1 = s[ p = ( p + 1 ) & 15 ];
 	s1 ^= s1 << 31; // a
 	s1 ^= s1 >> 11; // b
 	s0 ^= s0 >> 30; // c
 	return ( s[ p ] = s0 ^ s1 ) * 1181783497276652981ULL; 
-    }
+	}
 
 }
 
 void RandomState(LifeState* state) {
 
-    for (int i = 0; i < N; i++)
-        state->state[i] = PRNG::rand64();
+	for (int i = 0; i < N; i++)
+		state->state[i] = PRNG::rand64();
 
-    RecalculateMinMax(state);
+	RecalculateMinMax(state);
 }
 
 void RandomState() {
-    
-    RandomState(GlobalState);
+	
+	RandomState(GlobalState);
 }
 
 void New()
@@ -1545,7 +1570,7 @@ int Next(LifeIterator *iter1[], int numIters, int toPrint)
 int Next(LifeIterator *iter1, LifeIterator *iter2, int toPrint)
 {
 	LifeIterator *iters[] = {iter1, iter2};
-    return Next(iters, 2, toPrint);
+	return Next(iters, 2, toPrint);
 }
 
 int Next(LifeIterator *iter1, LifeIterator *iter2)
@@ -1556,7 +1581,7 @@ int Next(LifeIterator *iter1, LifeIterator *iter2)
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, int toPrint)
 {
 	LifeIterator *iters[] = {iter1, iter2, iter3};
-    return Next(iters, 3, toPrint);
+	return Next(iters, 3, toPrint);
 }
 
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3)
@@ -1567,7 +1592,7 @@ int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3)
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, int toPrint)
 {
 	LifeIterator *iters[] = {iter1, iter2, iter3, iter4};
-    return Next(iters, 4, toPrint);
+	return Next(iters, 4, toPrint);
 }
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4)
 {
@@ -1577,7 +1602,7 @@ int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIter
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, LifeIterator *iter5, int toPrint)
 {
 	LifeIterator *iters[] = {iter1, iter2, iter3, iter4, iter5};
-    return Next(iters, 5, toPrint);
+	return Next(iters, 5, toPrint);
 }
 
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, LifeIterator *iter5)
@@ -1588,7 +1613,7 @@ int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIter
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, LifeIterator *iter5, LifeIterator *iter6, int toPrint)
 {
 	LifeIterator *iters[] = {iter1, iter2, iter3, iter4, iter5, iter6};
-    return Next(iters, 6, toPrint);
+	return Next(iters, 6, toPrint);
 }
 
 int Next(LifeIterator *iter1, LifeIterator *iter2, LifeIterator *iter3, LifeIterator *iter4, LifeIterator *iter5, LifeIterator *iter6)
@@ -1741,7 +1766,7 @@ char* ReadFile(const char *filePath)
 void SaveResults(LifeResults* results, const char* filePath)
 {
 	FILE *f;
-    f = fopen(filePath, "wb");
+	f = fopen(filePath, "wb");
 	
 	for(int i = 0; i < results->size; i++)
 	{	
@@ -1768,4 +1793,34 @@ LifeResults* LoadResults(const char* filePath)
 	}
 	
 	return results;
+}
+
+void FreeResults(LifeResults* results)
+{
+	for(int i=0; i<2*(results->size); i++)
+		FreeState((results->results)[i]);
+	free(results->results);
+	free(results);
+}
+
+void Free()
+{
+	if(GlobalState != NULL)
+	{
+		FreeState(GlobalState);
+		FreeState(Temp);
+		FreeState(Temp1);
+		FreeState(Temp2);
+		
+		for(int i = 0; i < CAPTURE_COUNT; i++)
+		{
+			FreeState(Captures[i]);
+		}
+		
+		FreeTargetLocator(_glidersTarget[0]);
+		FreeTargetLocator(_glidersTarget[1]);
+		FreeTargetLocator(_glidersTarget[2]);
+		FreeTargetLocator(_glidersTarget[3]);
+
+	}
 }
