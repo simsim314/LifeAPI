@@ -9,7 +9,7 @@
 #include <string.h>
 
 #define N 64
-#define CAPTURE_COUNT 100 // Modified to capture Hash minimas --Scorbie
+#define CAPTURE_COUNT 10
 #define MAX_ITERATIONS 200
 
 #define SUCCESS 1
