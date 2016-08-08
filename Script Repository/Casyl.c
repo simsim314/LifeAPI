@@ -1,4 +1,4 @@
-#include "../mpLifeAPI.h"
+#include "../LifeAPI.h"
 
 int main (int argc, char *argv[]) 
 {
