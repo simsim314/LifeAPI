@@ -41,7 +41,7 @@ Here is an example of well tuned g++ flags:
 
 g++ "PerformanceTest.cpp" -o PerformanceTest -O3 -fopenmp -mavx2 -fno-tree-loop-distribute-patterns -march=haswell
 
-**NOTE** LifeAPI can also be compiled using MSVC. To enable AVX/SSE in VisualStudio right click on Project->Properties->C/C++->Command Line->Additional Options: add /arch:[IA32|SSE|SSE2|AVX|AVX2] /Qvec-report
+**NOTE** LifeAPI can also be compiled using MSVC. To enable AVX/SSE in VisualStudio right click on Project->Properties->C/C++->Command Line->Additional Options: add /arch:[IA32|SSE|SSE2|AVX|AVX2] /Qvec-report. It's recommended to use VS2015 as it has the best vectorization optimizations. 
 
 API Documentation 
 ==========
