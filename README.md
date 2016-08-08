@@ -15,13 +15,34 @@ How to use
 1. Download  [LifeAPI.h](https://github.com/simsim314/LifeAPI/blob/master/LifeAPI.h)
 2. Place it in the same folder with you code.
 3. #include "LifeAPI.h" in your code. 
-4. Compile with C++ compiler.
+4. Compile with C++ compiler.*
 5. See samples [here](https://github.com/simsim314/LifeAPI). 
 
 Enjoy. 
 
 
 **NOTE** LifeAPI is in rapid development so we update the UnitTest.c to its latest abilities (actually no commit is done before the UnitTest.c was updated and made sure to work properly, with the latest changes). The samples might be outdated, or even not work. 
+
+Compilation
+==========
+
+LifeAPI.h is written in a way that benefits from AVX/SSE compilation flags enabled (called vectorization). 
+Check what architecture you CPU supports SSE/AVX/AVX2 and add them to g++ compilation flags. 
+
+For example: 
+
+g++ "PerformanceTest.cpp" -o PerformanceTest -O3 -mavx2
+g++ "PerformanceTest.cpp" -o PerformanceTest -O3 -msse
+
+LifeAPI.h is also written with OpenMP support in mind. This means that all global objects are thread private. To compile with OpenMP one should add _-fopenmp_ flag
+
+g++ "PerformanceTest.cpp" -o PerformanceTest -O3 -msse -fopenmp
+
+Here is an example of well tuned g++ flags: 
+
+g++ "PerformanceTest.cpp" -o PerformanceTest -O3 -fopenmp -mavx2 -fno-tree-loop-distribute-patterns -march=haswell
+
+**NOTE** To make sure all LifeAPI global objects are thread private, one should call New() only after #pragma omp parallel. 
 
 API Documentation 
 ==========
