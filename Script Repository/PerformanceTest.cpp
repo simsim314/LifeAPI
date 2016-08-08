@@ -35,6 +35,8 @@ int main()
 			New();
 			PutState(snark);
 			Run(1243);
+			
+			#pragma omp critical
 			evolved_cells += cycle; 
 		}
 	}
