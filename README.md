@@ -42,8 +42,6 @@ Here is an example of well tuned g++ flags:
 
 g++ "PerformanceTest.cpp" -o PerformanceTest -O3 -fopenmp -mavx2 -fno-tree-loop-distribute-patterns -march=haswell
 
-**NOTE** To make sure all LifeAPI global objects are thread private, one should call New() only after #pragma omp parallel. 
-
 **NOTE** LifeAPI can also be compiled using MSVC. To enable AVX/SSE in VisualStudio in Properties->C/C++->Command Line->Additional Options add 
 _/arch:[IA32|SSE|SSE2|AVX|AVX2] /Qvec-report_
 
@@ -82,6 +80,8 @@ First of all there are some static objects in LifeAPI.
 Each LifeAPI application Starts with the line **New();** in main. This is made to initialize the GlobalState (empty universe), Capture, Temp etc. 
 
 **NOTE:** GlobalState is not made to improve performance, and iterating any other state will works at the same speed, but it allows more simple coding (usually functions that emit the state as first parameter, mainpulate GlobalState). 
+
+**NOTE** When using OpenMP, to make sure all LifeAPI global objects like **GlobalState** are thread private, one should call New() only after #pragma omp parallel. 
 
 ---
 Initializing LifeState
