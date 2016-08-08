@@ -44,6 +44,17 @@ g++ "PerformanceTest.cpp" -o PerformanceTest -O3 -fopenmp -mavx2 -fno-tree-loop-
 
 **NOTE** To make sure all LifeAPI global objects are thread private, one should call New() only after #pragma omp parallel. 
 
+**NOTE** LifeAPI can also be compiled using MSVC. To enable AVX/SSE in VisualStudio in Properties->C/C++->Command Line->Additional Options add 
+_/arch:AVX2 /Qvec-report_
+
+or 
+
+_/arch:AVX /Qvec-report_
+
+or
+
+_/arch:SSE /Qvec-report_
+
 API Documentation 
 ==========
 ---
