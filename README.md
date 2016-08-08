@@ -31,8 +31,7 @@ Check what architecture you CPU supports SSE/AVX/AVX2 and add them to g++ compil
 
 For example: 
 
-g++ "PerformanceTest.cpp" -o PerformanceTest -O3 -mavx2
-g++ "PerformanceTest.cpp" -o PerformanceTest -O3 -msse
+g++ "PerformanceTest.cpp" -o PerformanceTest -O3 [-mavx2|-mavx|-msse]
 
 LifeAPI.h is also written with OpenMP support in mind. This means that all global objects are thread private. To compile with OpenMP one should add _-fopenmp_ flag
 
