@@ -19,9 +19,9 @@
 #define YES 1
 #define NO 0
 
-#ifdef __MSC_VER
+#ifdef _MSC_VER
 	#include <intrin.h>
-	#define __builtin_popcount __popcnt64
+	#define __builtin_popcountll __popcnt64
 #endif
 
 enum CopyType { COPY, OR, XOR, AND };
