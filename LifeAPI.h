@@ -12,7 +12,6 @@
 #define PrimeN 71
 #define CAPTURE_COUNT 10 
 #define MAX_ITERATIONS 200
-#define PREFERRED_VECTOR_BYTE_SIZE 16
 
 #define SUCCESS 1
 #define FAIL 0
@@ -23,6 +22,16 @@
 #ifdef _MSC_VER
 	#include <intrin.h>
 	#define __builtin_popcountll __popcnt64
+#endif
+
+#ifdef __HAS_AVX_512F
+	#define PREFERRED_VECTOR_BYTE_SIZE 64
+#else
+	#ifdef __NO_AVX2
+		#define PREFERRED_VECTOR_BYTE_SIZE 16
+	#else
+		#define PREFERRED_VECTOR_BYTE_SIZE 32
+	#endif
 #endif
 
 enum CopyType { COPY, OR, XOR, AND };
