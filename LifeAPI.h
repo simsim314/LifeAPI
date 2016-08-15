@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <malloc.h>
 #define N 64
 #define PrimeN 71
 #define CAPTURE_COUNT 10 
@@ -19,9 +19,19 @@
 #define YES 1
 #define NO 0
 
-#ifdef __MSC_VER
+#ifdef _MSC_VER
 	#include <intrin.h>
-	#define __builtin_popcount __popcnt64
+	#define __builtin_popcountll __popcnt64
+#endif
+
+#ifdef __HAS_AVX_512F
+	#define PREFERRED_VECTOR_BYTE_SIZE 64
+#else
+	#ifdef __NO_AVX2
+		#define PREFERRED_VECTOR_BYTE_SIZE 16
+	#else
+		#define PREFERRED_VECTOR_BYTE_SIZE 32
+	#endif
 #endif
 
 enum CopyType { COPY, OR, XOR, AND };
@@ -394,7 +404,10 @@ void ClearData(LifeState* state)
 
 LifeState* NewState()
 {
-	LifeState* result = (LifeState*)(malloc(sizeof(LifeState)));
+	size_t boundary = 4096 * 4;
+    size_t size = sizeof(LifeState);
+	
+	LifeState* result = (LifeState*)(_aligned_malloc(size, boundary));
 	result->emittedGliders = NewString();
 	ClearData(result);
 	
@@ -1148,7 +1161,141 @@ uint64_t inline Evolve(const uint64_t& temp, const uint64_t& bU0, const uint64_t
 	return ~sum2 & sum1 & (temp | sum0);
 }
 
+static __forceinline int align_down_int(int arg, int alignment)
+{
+	return arg & ~(((int)alignment) - 1);
+}
+
+static __forceinline int align_up_int(int arg, int alignment)
+{
+	return (arg + (((int)alignment) - 1)) & ~(((int)alignment) - 1);
+}
+
+static __forceinline const void *align_down_const_pointer(const void *p, uint64_t alignment)
+{
+	return (const void *)(((uintptr_t)p) & (uintptr_t)~(alignment - 1));
+}
+
+static __forceinline void *align_down_pointer(void *p, uint64_t alignment)
+{
+	return (void *)(((uintptr_t)p) & (uintptr_t)~(alignment - 1));
+}
+
+
+static __forceinline void Add(uint64_t* bit2, uint64_t* bit1, uint64_t*bit0, uint64_t* next_cell)
+{
+	uint64_t carry_0_to_1 = *bit0 & *next_cell;
+	*bit2 = *bit2 | (*bit1 & carry_0_to_1);
+	*bit1 = *bit1 | carry_0_to_1;
+	*bit0 = *bit0 ^ *next_cell;
+}
+
+static __forceinline void Add_Init(uint64_t* bit2, uint64_t* bit1, uint64_t*bit0, uint64_t* next_cell)
+{
+	uint64_t carry_0_to_1 = *bit0 & *next_cell;
+	*bit2 = (*bit1 & carry_0_to_1);
+	*bit1 = *bit1 | carry_0_to_1;
+	*bit0 = *bit0 ^ *next_cell;
+}
+
+static __forceinline void Add1(uint64_t* bit1, uint64_t*bit0, uint64_t* next_cell)
+{
+	*bit1 = *bit1 | (*bit0 & *next_cell);
+	*bit0 = *bit0 ^ *next_cell;
+}
+
+static __forceinline void Add1_Init(uint64_t* bit1, uint64_t*bit0, uint64_t* next_cell)
+{
+	*bit1 = *bit0 & *next_cell;
+	*bit0 = *bit0 ^ *next_cell;
+}
+
+static __forceinline uint64_t GoLGrid_int_evolve_word(uint64_t upper_word, uint64_t mid_word, uint64_t lower_word)
+{
+
+	uint64_t sum_bit_0 = mid_word >> 1;
+	uint64_t sum_bit_1;
+	uint64_t sum_at_least_4;
+
+	uint64_t next_cell = (mid_word << 1);
+	Add1_Init(&sum_bit_1, &sum_bit_0, &next_cell);
+
+	next_cell = upper_word;
+	Add1(&sum_bit_1, &sum_bit_0, &next_cell);
+
+	next_cell = upper_word << 1;
+	Add_Init(&sum_at_least_4, &sum_bit_1, &sum_bit_0, &next_cell);
+
+	next_cell = upper_word >> 1;
+	Add(&sum_at_least_4, &sum_bit_1, &sum_bit_0, &next_cell);
+
+	uint64_t l_sum_bit_0 = lower_word >> 1;
+	uint64_t l_sum_bit_1;
+
+	next_cell = (lower_word);
+	Add1_Init(&l_sum_bit_1, &l_sum_bit_0, &next_cell);
+
+	next_cell = (lower_word << 1);
+	Add1(&l_sum_bit_1, &l_sum_bit_0, &next_cell);
+
+	Add(&sum_at_least_4, &sum_bit_1, &sum_bit_0, &l_sum_bit_0);
+	Add1(&sum_at_least_4, &sum_bit_1, &l_sum_bit_1);
+
+	return ~(sum_at_least_4)& sum_bit_1 & (sum_bit_0 | mid_word);
+}
+
+static __forceinline void GoLGrid_int_evolve_column(const uint64_t *__restrict in_entry, uint64_t *__restrict out_entry, int row_cnt)
+{
+	int row_ix;
+
+	for (row_ix = 0; row_ix < row_cnt; row_ix++)
+	{
+		uint64_t out_word = GoLGrid_int_evolve_word(in_entry[-1], in_entry[0], in_entry[1]);
+		in_entry++;
+		*out_entry++ = out_word;
+	}
+
+}
+
 void IterateState(LifeState *lifstate)
+{
+	int min = lifstate->min;
+	int max = lifstate->max;
+
+	int required_row_on = min;
+	int required_row_off = max;
+	int make_row_on = align_down_int(required_row_on, PREFERRED_VECTOR_BYTE_SIZE / sizeof(uint64_t));
+	int make_row_off = align_up_int(required_row_off, PREFERRED_VECTOR_BYTE_SIZE / sizeof(uint64_t));
+
+	int make_row_cnt = make_row_off - make_row_on;
+
+	uint64_t* state = lifstate->state;
+	uint64_t tempState[N];
+
+	const uint64_t *in_entry = (const uint64_t *)align_down_const_pointer(state + (uint64_t)make_row_on, PREFERRED_VECTOR_BYTE_SIZE);
+	uint64_t *out_entry = (uint64_t *)align_down_pointer(tempState + (uint64_t)make_row_on, PREFERRED_VECTOR_BYTE_SIZE);
+
+	GoLGrid_int_evolve_column(in_entry, out_entry, make_row_cnt);
+	
+	int s = min + 1;
+	int e = max - 1;
+
+	if (s == 1)
+		s = 0;
+
+	if (e == N - 2)
+		e = N - 1;
+
+	for (int i = s; i <= e; i++)
+	{
+		state[i] = tempState[i];
+	}
+
+	RefitMinMax(lifstate);
+	lifstate->gen++;
+}
+
+void IterateStateOld(LifeState *lifstate)
 {
 	uint64_t* state = lifstate->state;
 	int min = lifstate->min;
