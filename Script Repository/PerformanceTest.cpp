@@ -7,7 +7,7 @@ int main()
 {
 	long long evolved_cells = 0; 
 	clock_t begin;
-	omp_set_num_threads(8);
+	//omp_set_num_threads(8);
 	
 	#pragma omp parallel
 	{

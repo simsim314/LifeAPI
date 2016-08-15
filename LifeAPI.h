@@ -759,8 +759,6 @@ LifeTarget* NewTarget(LifeState* wanted, LifeState* unwanted)
 	return result;
 }
 
-
-
 LifeTarget* NewTarget(LifeState* wanted)
 {
 	GetBoundary(wanted, Temp1);
@@ -1190,8 +1188,6 @@ void IterateState(LifeState *lifstate)
 	for (int i = start; i <= last; i++)
 		tempState[i] = Evolve(state[i], bit0[i - 1], bit1[i - 1], bit0[i + 1], bit1[i + 1]);
 	
-	
-		
 	int s = min + 1;
 	int e =  max - 1;
 	
@@ -1563,6 +1559,18 @@ LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h, int s)
 LifeIterator* NewIterator(LifeState* state, int x, int y, int w, int h)
 {
 	return NewIterator(state, x, y, w, h, 1, LEAVE);
+}
+
+LifeIterator* NewIterator(const char* rle, int x, int y, int w, int h, int s)
+{
+	LifeState* state = NewState(rle);
+	return NewIterator(state, x, y, w, h, s, EVOLVE);
+}
+
+LifeIterator* NewIterator(const char* rle, int x, int y, int w, int h)
+{
+	LifeState* state = NewState(rle);
+	return NewIterator(state, x, y, w, h);
 }
 
 LifeIterator* NewIterator(int x, int y, int w, int h)
