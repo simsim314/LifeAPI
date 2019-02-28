@@ -1989,6 +1989,12 @@ LifeBox* NewBox(int minx, int miny, int maxx, int maxy)
 	return result;
 }
 
+int StateWidth(LifeState* state)
+{
+	RefitMinMax(state);
+	return state->max - state->min + 1;
+}
+
 int BoxWidth(LifeBox* box)
 {
 	return box->maxx - box->minx + 1;
@@ -2024,11 +2030,11 @@ int BoxHeight(LifeBox* box)
 		
 		if(tmp == box->maxVal)
 		{
-			return i - maxy + 1; 
+			return i - miny + 1; 
 		}
 	}
 	
-	
+	return -1; 
 }
 
 int IsInside(LifeState* state, LifeBox* box)
