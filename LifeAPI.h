@@ -9,6 +9,8 @@
 #include <string.h>
 
 #define N 64
+#define MAX_EMITTED 64
+
 #define PrimeN 71
 #define CAPTURE_COUNT 10 
 #define MAX_ITERATIONS 200
@@ -109,12 +111,23 @@ LifeString* NewString(const char* val)
 
 typedef struct 
 {
+	int x; 
+	int y; 
+	int gen; 
+	int dx; 
+	int dy; 
+	
+} EmitedGlider;
+
+typedef struct 
+{
 	int min;
 	int max; 
 	int gen; 
 	uint64_t  state[N];
 	
-	LifeString* emittedGliders;  
+	EmitedGlider emittedGliders[MAX_EMITTED];  
+	int num_emitted; 
 	
 } LifeState;
 
@@ -126,6 +139,9 @@ static LifeState* Captures[CAPTURE_COUNT];
 
 static LifeState* Temp, *Temp1, *Temp2;
 #pragma omp threadprivate(Temp, Temp1, Temp2)
+
+static EmitedGlider _gliders[4];
+#pragma omp threadprivate(_gliders)
 
 inline uint64_t CirculateLeft(uint64_t x){
 	return (x << 1) | (x >> (63));
@@ -364,6 +380,51 @@ int GetPop()
 	return GetPop(GlobalState);
 }
 
+int IsSame(LifeState* s1, LifeState* s2)
+{
+	for(int i = 0; i < N; i++)
+		if(s1->state[i] != s2->state[i])
+			return NO;
+		
+	return YES; 
+}
+
+int IsSame(LifeState* s1)
+{
+	return IsSame(GlobalState, s1);
+}
+
+int IsSame(int capture_idx)
+{
+	return IsSame(GlobalState, Captures[capture_idx]);
+}
+
+int IsEmpty(LifeState* s)
+{
+	int min = s->min;
+	int max = s->max;
+	uint64_t * mainState = s->state;
+	
+	for(int i = min; i <= max; i++)
+	{
+		if(mainState[i] != 0LL)
+			return NO;
+	}
+	
+	return YES; 
+}
+
+int IsEmpty()
+{
+	return IsEmpty(GlobalState);
+}
+
+int IsEmpty(int idx)
+{
+	return IsEmpty(Captures[idx]);
+}
+
+
 int GetPop(int captureIdx)
 {
 	return GetPop(Captures[captureIdx]);
@@ -387,15 +448,12 @@ void ClearData(LifeState* state)
 	state -> min = 0;
 	state -> max = N - 1;
 	state->gen = 0;
-	
-	Clear(state->emittedGliders);
-
+	state->num_emitted = 0; 
 }
 
 LifeState* NewState()
 {
 	LifeState* result = (LifeState*)(malloc(sizeof(LifeState)));
-	result->emittedGliders = NewString();
 	ClearData(result);
 	
 	return result;
@@ -403,7 +461,6 @@ LifeState* NewState()
 
 void FreeState(LifeState* state)
 {
-	FreeString(state->emittedGliders);
 	free(state);
 }
 
@@ -569,8 +626,7 @@ void Transform(LifeState* state, int dx, int dy, int dxx, int dxy, int dyx, int 
 	ClearData(Temp2);
 	ClearData(Temp1);
 	Copy(Temp1, state);
-	Move(Temp1, dx, dy);
-	
+
 	for(int i = 0; i < N; i++)
 	{
 		for(int j = 0; j < 64; j++)
@@ -586,6 +642,7 @@ void Transform(LifeState* state, int dx, int dy, int dxx, int dxy, int dyx, int 
 			SetCell(Temp2, x, y, val);
 		}
 	}
+	Move(Temp2, dx, dy);
 	
 	Copy(state, Temp2);
 	RecalculateMinMax(state);
@@ -975,6 +1032,7 @@ int ContainsLocator(LifeState* state, Locator* onLocator, Locator* offLocator, i
 	return NO;
 }
 
+
 typedef struct 
 {
   Locator* onLocator;
@@ -999,6 +1057,12 @@ TargetLocator* Target2Locator(LifeTarget* target)
 	result->onLocator = State2Locator(target->wanted);
 	result->offLocator = State2Locator(target->unwanted);
 	
+	return result;
+}
+
+TargetLocator* NewTargetLocator(LifeState* state)
+{
+	TargetLocator* result = Target2Locator(NewTarget(state));
 	return result;
 }
 
@@ -1045,6 +1109,14 @@ int ContainsLocator(TargetLocator* targetLocator)
 	return ContainsLocator(GlobalState, targetLocator->onLocator, targetLocator->offLocator, GlobalState->min, GlobalState->max);
 }
 
+int ContainsLocator(TargetLocator* locs[], int n)
+{
+	for(int i = 0; i < n; i++)
+		if(ContainsLocator(locs[i]) == YES)
+			return YES;
+	
+	return NO; 
+}
 
 static TargetLocator* _glidersTarget[4];
 #pragma omp threadprivate(_glidersTarget)
@@ -1066,15 +1138,12 @@ int RemoveAtX(LifeState *state, int x, int startGiderIdx)
 			{
 				if(gld % 2 == 1)
 				{
-					Append(state->emittedGliders, "(");
-					Append(state->emittedGliders, i);
-					Append(state->emittedGliders, ",");
-					Append(state->emittedGliders, j);
-					Append(state->emittedGliders, ",");
-					Append(state->emittedGliders, state->gen);
-					Append(state->emittedGliders, ",");
-					Append(state->emittedGliders, x);
-					Append(state->emittedGliders, ")");
+					state->emittedGliders[state->num_emitted].x = x; 
+					state->emittedGliders[state->num_emitted].y = j;
+					state->emittedGliders[state->num_emitted].gen = state->gen;
+					state->emittedGliders[state->num_emitted].dx = _gliders[i].dx;
+					state->emittedGliders[state->num_emitted].dy = _gliders[i].dy;
+					state->num_emitted++; 
 				}
 				
 				gld = gld >> 1;
@@ -1376,6 +1445,19 @@ void New()
 		_glidersTarget[2] = NewTargetLocator("b2o$obo$2bo!", -2, 0);
 		_glidersTarget[3] = NewTargetLocator("2bo$obo$b2o!", -2, 0);
 
+		
+		_gliders[0].dx = -1;
+		_gliders[0].dy = -1;
+		
+		_gliders[1].dx = -1;
+		_gliders[1].dy = 1;
+		
+		_gliders[2].dx = 1;
+		_gliders[2].dy = 1;
+		
+		_gliders[3].dx = 1;
+		_gliders[3].dy = -1;
+		
 	}
 	else
 	{
@@ -1882,6 +1964,19 @@ typedef struct
 	
 } LifeBox;
 
+LifeBox* NewBox()
+{
+	LifeBox* result = (LifeBox*)(malloc(sizeof(LifeBox)));
+	
+	result->minx = 0;
+	result->maxx = 0;
+	
+	result->minVal = 1ULL;
+	result->maxVal = 1ULL;
+	
+	return result;	
+}
+
 LifeBox* NewBox(int minx, int miny, int maxx, int maxy)
 {
 	LifeBox* result = (LifeBox*)(malloc(sizeof(LifeBox)));
@@ -1894,10 +1989,50 @@ LifeBox* NewBox(int minx, int miny, int maxx, int maxy)
 	return result;
 }
 
+int BoxWidth(LifeBox* box)
+{
+	return box->maxx - box->minx + 1;
+}
+
+int BoxX(LifeBox* box)
+{
+	return box->minx;
+}
+
+int BoxY(LifeBox* box)
+{
+	uint64_t tmp = 1ULL; 
+	
+	for(int i = 0; i <= N; i++)
+	{
+		if(tmp == box->minVal)
+			return i; 
+	}
+}
+
+
+
+int BoxHeight(LifeBox* box)
+{
+	int miny; 
+	uint64_t tmp = 1ULL; 
+	
+	for(int i = 0; i <= N; i++)
+	{
+		if(tmp == box->minVal)
+			miny = i;
+		
+		if(tmp == box->maxVal)
+		{
+			return i - maxy + 1; 
+		}
+	}
+	
+	
+}
+
 int IsInside(LifeState* state, LifeBox* box)
 {
-	int allZero = YES;
-	
 	for(int i = state->min; i <= state->max; i++)
 	{
 		uint64_t curVal = state->state[i];
@@ -1905,8 +2040,6 @@ int IsInside(LifeState* state, LifeBox* box)
 		if(curVal == 0)
 			continue;
 
-		allZero = NO;
-		
 		if(curVal > box->maxVal || curVal < box->minVal)
 			return NO;
 		
@@ -1915,13 +2048,49 @@ int IsInside(LifeState* state, LifeBox* box)
 	
 		if(i > box->maxx)
 			return NO;
-	
 	}
 	
-	if(allZero == NO)
-		return YES;
-	else
-		return NO;
+	return YES;
+}
+
+
+int GetBoundingBox(LifeState* state, LifeBox* box)
+{
+	if(IsEmpty(state))
+		return FAIL; 
+	
+	RefitMinMax(state);
+	uint64_t or_all = 0LL; 
+	
+	for(int i = state->min; i <= state->max; i++)
+	{
+		or_all |= state->state[i];
+	}
+	
+	box->minx = state->min;
+	box->maxx = state->max;
+	
+	box->minVal = 1ULL;
+	box->maxVal = 1ULL << 63;
+	
+	for(int i = 0; i <= N; i++)
+	{
+		//example 0011001000
+		//get 0010000000, 0000001000
+		
+		if(box->minVal <= or_all)
+			box->minVal << 1;
+		
+		if(box->maxVal >= or_all)
+			box->minVal >> 1;
+		
+	}
+	
+	box->minVal >> 1;
+	box->maxVal << 1;
+	
+	return SUCCESS; 
+	
 }
 
 int IsInside(LifeBox* box)
